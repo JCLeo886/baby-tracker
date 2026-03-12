@@ -341,6 +341,17 @@ body{font-family:var(--font);background:var(--cream);color:var(--text);min-heigh
   <div class="sactions"><button class="btn-cancel" onclick="closeOv('addBabyOv')">取消</button><button class="btn-save" onclick="saveNewBaby()">新增</button></div></div>
 </div>
 
+<!-- EDIT BABY -->
+<div class="overlay" id="editBabyOv" onclick="ovClick(event,'editBabyOv')">
+  <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title">編輯寶寶 ✏️</div><button class="shdr-close" onclick="closeOv('editBabyOv')">✕</button></div>
+  <div class="sbody">
+    <div class="field"><label class="fl">寶寶名字</label><input class="input" id="editName" placeholder="輸入寶寶的暱稱" type="text"/></div>
+    <div class="field"><label class="fl">生日</label><input class="input" id="editBirth" type="date"/></div>
+    <div class="field"><label class="fl">性別</label><div style="display:flex;gap:10px"><div class="gc on" data-v="girl" onclick="pickGEdit(this)">👧<span>女寶寶</span></div><div class="gc" data-v="boy" onclick="pickGEdit(this)">👦<span>男寶寶</span></div></div></div>
+  </div>
+  <div class="sactions"><button class="btn-cancel" onclick="closeOv('editBabyOv')">取消</button><button class="btn-save" onclick="saveEditBaby()">儲存</button></div></div>
+</div>
+
 <!-- GOOGLE DRIVE SETUP -->
 <div class="overlay" id="gdriveOv" onclick="ovClick(event,'gdriveOv')">
   <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title">☁️ Google Drive 設定</div><button class="shdr-close" onclick="closeOv('gdriveOv')">✕</button></div>
@@ -699,7 +710,7 @@ function renderGrowthChart() {
 // BABY PICKER
 // ═══════════════════════════════════════
 function openBabyPicker(){
-  document.getElementById('babyList').innerHTML=S.babies.map(b=>`<div class="baby-row" onclick="selBaby('${b.id}')"><div class="b-av">${b.gender==='boy'?'👦':'👧'}</div><div class="b-info"><div class="b-name">${b.name}</div><div class="b-sub">${b.birth?'生日：'+b.birth:'尚未設定生日'}</div></div>${b.id===S.currentId?'<div class="b-check">✓</div>':''}</div>`).join('')+`<div class="add-baby-row" onclick="openAddBaby()"><div class="ab-icon">+</div><div style="font-size:16px;font-weight:700">新增寶寶</div></div>`;
+  document.getElementById('babyList').innerHTML=S.babies.map(b=>`<div class="baby-row" style="gap:10px"><div style="flex:1;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="selBaby('${b.id}')"><div class="b-av">${b.gender==='boy'?'👦':'👧'}</div><div class="b-info"><div class="b-name">${b.name}</div><div class="b-sub">${b.birth?'生日：'+b.birth:'尚未設定生日'}</div></div>${b.id===S.currentId?'<div class="b-check">✓</div>':''}</div><button style="padding:8px 12px;border:none;border-radius:10px;background:var(--cream2);font-size:16px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();openEditBaby('${b.id}')">✏️</button></div>`).join('')+`<div class="add-baby-row" onclick="openAddBaby()"><div class="ab-icon">+</div><div style="font-size:16px;font-weight:700">新增寶寶</div></div>`;
   document.getElementById('babyOv').classList.add('open');
 }
 function selBaby(id){S.currentId=id;save();updateHeader();renderLogs();updateSummary();renderCharts();closeOv('babyOv');toast('已切換到 '+curBaby().name);}
@@ -707,7 +718,11 @@ let selGender='girl';
 function openAddBaby(){closeOv('babyOv');document.getElementById('newName').value='';document.getElementById('newBirth').value='';selGender='girl';document.querySelectorAll('#addBabyOv .gc').forEach(c=>c.classList.toggle('on',c.dataset.v==='girl'));document.getElementById('addBabyOv').classList.add('open');}
 function pickG(el){selGender=el.dataset.v;document.querySelectorAll('#addBabyOv .gc').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
 function saveNewBaby(){const name=document.getElementById('newName').value.trim()||'小寶貝';const birth=document.getElementById('newBirth').value;const b={id:uid(),name,gender:selGender,birth};S.babies.push(b);S.currentId=b.id;save();updateHeader();renderLogs();updateSummary();closeOv('addBabyOv');toast('✨ 已新增：'+name);}
-function renderBabySet(){document.getElementById('babySetList').innerHTML=S.babies.map(b=>`<div class="set-item"><div class="sii">${b.gender==='boy'?'👦':'👧'}</div><div class="sib"><div class="sin">${b.name}</div><div class="sis">${b.birth?'生日：'+b.birth:'尚未設定生日'}${b.id===S.currentId?' · 使用中':''}</div></div></div>`).join('')+`<div class="set-item" onclick="openAddBaby()"><div class="sii">➕</div><div class="sib"><div class="sin">新增寶寶</div></div><div class="sia">›</div></div>`;}
+let selGenderEdit='girl',editBabyId=null;
+function openEditBaby(id){const b=S.babies.find(x=>x.id===id);if(!b)return;editBabyId=id;selGenderEdit=b.gender||'girl';document.getElementById('editName').value=b.name||'';document.getElementById('editBirth').value=b.birth||'';document.querySelectorAll('#editBabyOv .gc').forEach(c=>c.classList.toggle('on',c.dataset.v===selGenderEdit));closeOv('babyOv');document.getElementById('editBabyOv').classList.add('open');}
+function pickGEdit(el){selGenderEdit=el.dataset.v;document.querySelectorAll('#editBabyOv .gc').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function saveEditBaby(){const b=S.babies.find(x=>x.id===editBabyId);if(!b)return;b.name=document.getElementById('editName').value.trim()||b.name;b.birth=document.getElementById('editBirth').value;b.gender=selGenderEdit;save();updateHeader();renderLogs();updateSummary();renderCharts();renderBabySet();closeOv('editBabyOv');toast('✅ 已更新：'+b.name);}
+function renderBabySet(){document.getElementById('babySetList').innerHTML=S.babies.map(b=>`<div class="set-item"><div class="sii">${b.gender==='boy'?'👦':'👧'}</div><div class="sib"><div class="sin">${b.name}</div><div class="sis">${b.birth?'生日：'+b.birth:'尚未設定生日'}${b.id===S.currentId?' · 使用中':''}</div></div><div class="sia" onclick="openEditBaby('${b.id}')" style="cursor:pointer;font-size:18px">✏️</div></div>`).join('')+`<div class="set-item" onclick="openAddBaby()"><div class="sii">➕</div><div class="sib"><div class="sin">新增寶寶</div></div><div class="sia">›</div></div>`;}
 
 // ═══════════════════════════════════════
 // GOOGLE DRIVE AUTH
