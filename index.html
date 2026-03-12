@@ -559,7 +559,7 @@ function renderTodaySummary() {
     const mins = Math.round((Date.now() - new Date(lastFeed.ts)) / 60000);
     if (mins > 180) insights.push({ icon: '⏰', label: 'Last feeding', val: `${minsToHM(mins)} ago, may need feeding` });
   }
-  if (!insights.length) insights.push({ icon: '🌟', label: '開始記錄吧！', val: '今日尚無記錄，點首頁按鈕新增' });
+  if (!insights.length) insights.push({ icon: '🌟', label: 'Start logging!', val: 'No records today, click the buttons above to add' });
 
   document.getElementById('insightList').innerHTML = insights.map(ins =>
     `<div class="insight-row"><div class="in-icon">${ins.icon}</div><div class="in-body"><div class="in-label">${ins.label}</div><div class="in-val">${ins.val}</div></div></div>`
@@ -710,7 +710,7 @@ function renderGrowthChart() {
 // BABY PICKER
 // ═══════════════════════════════════════
 function openBabyPicker(){
-  document.getElementById('babyList').innerHTML=S.babies.map(b=>`<div class="baby-row" style="gap:10px"><div style="flex:1;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="selBaby('${b.id}')"><div class="b-av">${b.gender==='boy'?'👦':'👧'}</div><div class="b-info"><div class="b-name">${b.name}</div><div class="b-sub">${b.birth?'生日：'+b.birth:'尚未設定生日'}</div></div>${b.id===S.currentId?'<div class="b-check">✓</div>':''}</div><button style="padding:8px 12px;border:none;border-radius:10px;background:var(--cream2);font-size:16px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();openEditBaby('${b.id}')">✏️</button></div>`).join('')+`<div class="add-baby-row" onclick="openAddBaby()"><div class="ab-icon">+</div><div style="font-size:16px;font-weight:700">Add Baby</div></div>`;
+  document.getElementById('babyList').innerHTML=S.babies.map(b=>`<div class="baby-row" style="gap:10px"><div style="flex:1;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="selBaby('${b.id}')"><div class="b-av">${b.gender==='boy'?'👦':'👧'}</div><div class="b-info"><div class="b-name">${b.name}</div><div class="b-sub">${b.birth?'Birthday: '+b.birth:'No birthday set'}</div></div>${b.id===S.currentId?'<div class="b-check">✓</div>':''}</div><button style="padding:8px 12px;border:none;border-radius:10px;background:var(--cream2);font-size:16px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();openEditBaby('${b.id}')">✏️</button></div>`).join('')+`<div class="add-baby-row" onclick="openAddBaby()"><div class="ab-icon">+</div><div style="font-size:16px;font-weight:700">Add Baby</div></div>`;
   document.getElementById('babyOv').classList.add('open');
 }
 function selBaby(id){S.currentId=id;save();updateHeader();renderLogs();updateSummary();renderCharts();closeOv('babyOv');toast('已切換到 '+curBaby().name);}
@@ -741,7 +741,7 @@ function openGdriveSetup(){
   const body=document.getElementById('gdriveBody');
   if(GD.connected){
     const isGuest=!!GD.sharedJsonFileId;
-    body.innerHTML=`<div style="text-align:center;padding:16px 0 20px"><div style="font-size:48px;margin-bottom:12px">✅</div><div style="font-size:18px;font-weight:800;color:var(--green)">${isGuest?'共享模式已連結！':'已連結成功！'}</div><div style="font-size:13px;color:var(--text-soft);margin-top:8px;line-height:1.6">${isGuest?'正在讀寫老公的 records.json':'每次記錄後自動同步到 Google Drive'}</div></div>
+    body.innerHTML=`<div style="text-align:center;padding:16px 0 20px"><div style="font-size:48px;margin-bottom:12px">✅</div><div style="font-size:18px;font-weight:800;color:var(--green)">${isGuest?'Shared mode connected!':'Connected successfully!'}</div><div style="font-size:13px;color:var(--text-soft);margin-top:8px;line-height:1.6">${isGuest?'Reading/writing spouse\'s records.json':'Auto-syncs to Google Drive after each log'}</div></div>
     <div class="divider"></div>
     ${isGuest?`
     <div style="background:var(--cream);border-radius:var(--r-sm);padding:14px;font-size:12px">
@@ -765,9 +765,9 @@ function openGdriveSetup(){
     </div>
     `:''}
     `}
-    <div class="sactions"><button class="btn-save" style="flex:1" onclick="manualSync();closeOv('gdriveOv')">🔄 立即同步</button></div>`;
+    <div class="sactions"><button class="btn-save" style="flex:1" onclick="manualSync();closeOv('gdriveOv')">🔄 Sync Now</button></div>`;
   } else {
-    body.innerHTML=`<p style="font-size:14px;color:var(--text-soft);line-height:1.7;margin-bottom:20px">設定完成後，每次記錄都會自動同步到 Google Drive。</p>
+    body.innerHTML=`<p style="font-size:14px;color:var(--text-soft);line-height:1.7;margin-bottom:20px">After setup, each log will auto-sync to Google Drive.</p>
     <div class="step"><div class="step-n">1</div><div class="step-b"><div class="step-t">開啟 Google Cloud Console</div><div class="step-d">用電腦前往 <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a></div></div></div>
     <div class="step"><div class="step-n">2</div><div class="step-b"><div class="step-t">Create Project → Enable API</div><div class="step-d">"Create Project" → "APIs & Services" → "Enable APIs"<br>Search and enable: <b>Google Drive API</b> and <b>Google Sheets API</b></div></div></div>
     <div class="step"><div class="step-n">3</div><div class="step-b"><div class="step-t">建立 OAuth 憑證</div><div class="step-d">「憑證」→「建立憑證」→「OAuth 用戶端 ID」<br>類型選「<b>網頁應用程式</b>」<br>「授權的 JavaScript 來源」填入本 App 的網址</div></div></div>
@@ -787,37 +787,37 @@ function startGoogleLogin(){
   if(!cid||!cid.includes('apps.googleusercontent.com')){toast('⚠️ 請輸入正確的 Client ID');return;}
   const sharedId=((document.getElementById('sharedFileInput')||{}).value||'').trim();
   GD.clientId=cid;GD.sharedJsonFileId=sharedId;saveGD();
-  if(!window.google||!window.google.accounts){toast('⚠️ GIS 尚未載入，請稍候再試');return;}
+  if(!window.google||!window.google.accounts){toast('⚠️ GIS not loaded, please try again');return;}
   google.accounts.oauth2.initTokenClient({
     client_id:GD.clientId,
     scope:'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
     callback:(resp)=>{
-      if(resp.access_token){GD.token=resp.access_token;GD.connected=true;updateSyncUI();toast('✅ 連結成功！');closeOv('gdriveOv');setTimeout(fullSync,500);}
-      else toast('⚠️ 登入失敗');
+      if(resp.access_token){GD.token=resp.access_token;GD.connected=true;updateSyncUI();toast('✅ Connected!');closeOv('gdriveOv');setTimeout(fullSync,500);}
+      else toast('⚠️ Login failed');
     },
-    error_callback:(e)=>toast('⚠️ 登入失敗：'+e.type)
+    error_callback:(e)=>toast('⚠️ Login failed: '+e.type)
   }).requestAccessToken();
 }
 
 function updateSyncUI(){
   const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLbl');
-  if(GD.connected){dot.className='sync-dot ok';lbl.textContent='已同步';}
-  else{dot.className='sync-dot';lbl.textContent='未連結';}
+  if(GD.connected){dot.className='sync-dot ok';lbl.textContent='Synced';}
+  else{dot.className='sync-dot';lbl.textContent='Not Synced';}
 }
-function setSyncing(v){const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLbl');if(v){dot.className='sync-dot busy';lbl.textContent='同步中';}else{dot.className=GD.connected?'sync-dot ok':'sync-dot';lbl.textContent=GD.connected?'已同步':'未連結';}}
+function setSyncing(v){const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLbl');if(v){dot.className='sync-dot busy';lbl.textContent='Syncing';}else{dot.className=GD.connected?'sync-dot ok':'sync-dot';lbl.textContent=GD.connected?'Synced':'Not Synced';}}
 
 function updateSettingsUI(){
   const banner=document.getElementById('gdriveBanner');
-  if(GD.connected){banner.classList.add('ok');document.getElementById('gdTitle').textContent='Google Drive 已連結 ✅';document.getElementById('gdSub').textContent=GD.lastSync?'上次同步：'+GD.lastSync:'點此查看詳情';document.getElementById('disconnectRow').style.display='flex';}
-  else{banner.classList.remove('ok');document.getElementById('gdTitle').textContent='連結 Google Drive';document.getElementById('gdSub').textContent='點此設定，讓兩支手機即時同步';document.getElementById('disconnectRow').style.display='none';}
-  if(GD.lastSync)document.getElementById('lastSyncLbl').textContent='上次同步：'+GD.lastSync;
+  if(GD.connected){banner.classList.add('ok');document.getElementById('gdTitle').textContent='Google Drive Connected ✅';document.getElementById('gdSub').textContent=GD.lastSync?'Last sync: '+GD.lastSync:'Click for details';document.getElementById('disconnectRow').style.display='flex';}
+  else{banner.classList.remove('ok');document.getElementById('gdTitle').textContent='Connect Google Drive';document.getElementById('gdSub').textContent='Click to set up sync between two phones';document.getElementById('disconnectRow').style.display='none';}
+  if(GD.lastSync)document.getElementById('lastSyncLbl').textContent='Last sync: '+GD.lastSync;
 }
 
 function onSyncBtn(){if(!GD.connected){switchPage('settings');}else manualSync();}
 
 function disconnectGoogle(){if(!confirm('Disconnect from Google?'))return;GD.token=null;GD.connected=false;GD.folderId='';GD.jsonFileId='';GD.sheetId='';GD.sharedJsonFileId='';saveGD();updateSyncUI();toast('🔌 Disconnected');}
 
-function openSyncLog(){document.getElementById('syncLogBox').textContent=GD.syncLog.length?GD.syncLog.slice(-30).reverse().join('\n'):'（尚無記錄）';document.getElementById('syncLogOv').classList.add('open');}
+function openSyncLog(){document.getElementById('syncLogBox').textContent=GD.syncLog.length?GD.syncLog.slice(-30).reverse().join('\n'):'(No records yet)';document.getElementById('syncLogOv').classList.add('open');}
 function addSyncLog(msg){const t=new Date().toLocaleTimeString('zh-TW');GD.syncLog.push(`[${t}] ${msg}`);if(GD.syncLog.length>60)GD.syncLog=GD.syncLog.slice(-60);saveGD();}
 
 // ═══════════════════════════════════════
@@ -890,9 +890,9 @@ const TABS={
 };
 
 function toRow(e){
-  const d=e.detail||{},t=new Date(e.ts).toLocaleString('zh-TW'),bn=e.babyName||'';
+  const d=e.detail||{},t=new Date(e.ts).toLocaleString('en-US'),bn=e.babyName||'';
   if(e.type==='feed')return[t,bn,d.type||'',d.dur||'',d.amt||'',d.note||''];
-  if(e.type==='sleep'){const et=d.endTs?new Date(d.endTs).toLocaleString('zh-TW'):'';const m=d.endTs?Math.round((new Date(d.endTs)-new Date(e.ts))/60000):'';return[t,et,m,bn,d.loc||'',d.note||''];}
+  if(e.type==='sleep'){const et=d.endTs?new Date(d.endTs).toLocaleString('en-US'):'';const m=d.endTs?Math.round((new Date(d.endTs)-new Date(e.ts))/60000):'';return[t,et,m,bn,d.loc||'',d.note||''];}
   if(e.type==='diaper')return[t,bn,d.type||'',d.color||'',d.note||''];
   if(e.type==='pump')return[t,d.side||'',d.dur||'',d.amt||'',d.note||''];
   if(e.type==='gauze')return[t,bn,d.status||'',d.note||''];
@@ -937,11 +937,11 @@ async function syncEntry(entry){
   syncLock=true;setSyncing(true);
   try{
     await pushJson();if(!GD.sharedJsonFileId)await appendRow(entry);
-    GD.lastSync=new Date().toLocaleString('zh-TW');saveGD();setSyncing(false);updateSettingsUI();addSyncLog('✅ 已同步：'+TN[entry.type]);
+    GD.lastSync=new Date().toLocaleString('en-US');saveGD();setSyncing(false);updateSettingsUI();addSyncLog('✅ Synced: '+TN[entry.type]);
   }catch(e){
     setSyncing(false);document.getElementById('syncDot').className='sync-dot err';
-    if(e.message==='TOKEN_EXPIRED'){toast('🔑 登入已過期，請重新連結');GD.connected=false;updateSyncUI();}
-    else{toast('⚠️ 同步失敗');addSyncLog('❌ '+e.message);}
+    if(e.message==='TOKEN_EXPIRED'){toast('🔑 Login expired, please reconnect');GD.connected=false;updateSyncUI();}
+    else{toast('⚠️ Sync failed');addSyncLog('❌ '+e.message);}
   }finally{syncLock=false;}
 }
 
@@ -950,13 +950,13 @@ async function fullSync(){
   syncLock=true;setSyncing(true);
   try{
     await pullJson();await pushJson();if(!GD.sharedJsonFileId)await ensureSheet();
-    GD.lastSync=new Date().toLocaleString('zh-TW');saveGD();
+    GD.lastSync=new Date().toLocaleString('en-US');saveGD();
     renderLogs();updateSummary();renderCharts();updateHeader();
-    setSyncing(false);toast('☁️ 同步完成！');addSyncLog('✅ 完整同步完成');updateSettingsUI();
+    setSyncing(false);toast('☁️ Sync complete!');addSyncLog('✅ Full sync completed');updateSettingsUI();
   }catch(e){
     setSyncing(false);document.getElementById('syncDot').className='sync-dot err';
-    if(e.message==='TOKEN_EXPIRED'){toast('🔑 登入已過期，請重新連結');GD.connected=false;updateSyncUI();}
-    else{toast('⚠️ 同步失敗，請稍後再試');addSyncLog('❌ 同步失敗：'+e.message);}
+    if(e.message==='TOKEN_EXPIRED'){toast('🔑 Login expired, please reconnect');GD.connected=false;updateSyncUI();}
+    else{toast('⚠️ Sync failed, please try again');addSyncLog('❌ Sync failed: '+e.message);}
   }finally{syncLock=false;}
 }
 
@@ -976,17 +976,17 @@ let editRKey='';
 function renderRems(){
   document.getElementById('remList').innerHTML=REMS.map((r,i)=>{
     const rem=S.reminders[r.key]||{on:false};
-    const detail=rem.on?(rem.mode==='interval'?`每隔 ${rem.interval} 分鐘`:`固定時間點`):'點此設定';
+    const detail=rem.on?(rem.mode==='interval'?`Every ${rem.interval} minutes`:`Fixed times`):'Click to set';
     return `<div class="rem-item" style="${i<REMS.length-1?'border-bottom:1px solid var(--border)':''}"><div class="ri">${r.icon}</div><div class="rb" onclick="openRemDetail('${r.key}')"><div class="rn">${r.name}</div><div class="rd">${detail}</div></div><button class="toggle ${rem.on?'on':''}" onclick="togRem('${r.key}',this)"></button></div>`;
   }).join('');
 }
 
-function togRem(key,btn){S.reminders[key].on=!S.reminders[key].on;btn.classList.toggle('on',S.reminders[key].on);btn.previousElementSibling.querySelector('.rd').textContent=S.reminders[key].on?(S.reminders[key].mode==='interval'?`每隔 ${S.reminders[key].interval} 分鐘`:`固定時間點`):'點此設定';save();if(S.reminders[key].on)reqNotif();scheduleRems();toast(S.reminders[key].on?'🔔 已開啟提醒':'🔕 已關閉提醒');}
+function togRem(key,btn){S.reminders[key].on=!S.reminders[key].on;btn.classList.toggle('on',S.reminders[key].on);btn.previousElementSibling.querySelector('.rd').textContent=S.reminders[key].on?(S.reminders[key].mode==='interval'?`Every ${S.reminders[key].interval} minutes`:`Fixed times`):'Click to set';save();if(S.reminders[key].on)reqNotif();scheduleRems();toast(S.reminders[key].on?'🔔 Reminder On':'🔕 Reminder Off');}
 
-function openRemDetail(key){editRKey=key;_tTimes=[...(S.reminders[key].times||[])];const r=REMS.find(x=>x.key===key);const rem=S.reminders[key]||{mode:'interval',interval:120,times:[]};document.getElementById('remDetailTitle').textContent=r.icon+' '+r.name;document.getElementById('remDetailBody').innerHTML=`<div class="field"><label class="fl">提醒模式</label><div class="chips" id="rdm"><div class="chip ${rem.mode==='interval'?'on':''}" data-v="interval" onclick="pc(this,'rdm');rdMC()">距上次記錄後</div><div class="chip ${rem.mode==='fixed'?'on':''}" data-v="fixed" onclick="pc(this,'rdm');rdMC()">固定時間點</div></div></div><div id="rdis" style="display:${rem.mode==='interval'?'block':'none'}"><div class="field"><label class="fl">幾分鐘後提醒</label><input class="input" id="rdiv" type="number" inputmode="numeric" value="${rem.interval||120}"/><div style="font-size:12px;color:var(--text-soft);margin-top:6px">哺乳 120分 · 換尿布 180分 · 擠奶 240分</div></div></div><div id="rdfs" style="display:${rem.mode==='fixed'?'block':'none'}"><div class="field"><label class="fl">新增提醒時間</label><div style="display:flex;gap:8px"><input class="input" id="rdnt" type="time" style="flex:1"/><button onclick="addFT()" style="padding:0 16px;background:var(--coral);color:white;border:none;border-radius:var(--r-sm);font-size:20px;cursor:pointer">+</button></div></div><div id="rdtl">${renderFTs(_tTimes)}</div></div>`;document.getElementById('remDetailOv').classList.add('open');}
+function openRemDetail(key){editRKey=key;_tTimes=[...(S.reminders[key].times||[])];const r=REMS.find(x=>x.key===key);const rem=S.reminders[key]||{mode:'interval',interval:120,times:[]};document.getElementById('remDetailTitle').textContent=r.icon+' '+r.name;document.getElementById('remDetailBody').innerHTML=`<div class="field"><label class="fl">Reminder Mode</label><div class="chips" id="rdm"><div class="chip ${rem.mode==='interval'?'on':''}" data-v="interval" onclick="pc(this,'rdm');rdMC()">After last log</div><div class="chip ${rem.mode==='fixed'?'on':''}" data-v="fixed" onclick="pc(this,'rdm');rdMC()">Fixed times</div></div></div><div id="rdis" style="display:${rem.mode==='interval'?'block':'none'}"><div class="field"><label class="fl">Remind after (minutes)</label><input class="input" id="rdiv" type="number" inputmode="numeric" value="${rem.interval||120}"/><div style="font-size:12px;color:var(--text-soft);margin-top:6px">Feeding 120min · Diaper 180min · Pump 240min</div></div></div><div id="rdfs" style="display:${rem.mode==='fixed'?'block':'none'}"><div class="field"><label class="fl">Add reminder time</label><div style="display:flex;gap:8px"><input class="input" id="rdnt" type="time" style="flex:1"/><button onclick="addFT()" style="padding:0 16px;background:var(--coral);color:white;border:none;border-radius:var(--r-sm);font-size:20px;cursor:pointer">+</button></div></div><div id="rdtl">${renderFTs(_tTimes)}</div></div>`;document.getElementById('remDetailOv').classList.add('open');}
 
 function rdMC(){const m=gc('rdm');document.getElementById('rdis').style.display=m==='interval'?'block':'none';document.getElementById('rdfs').style.display=m==='fixed'?'block':'none';}
-function renderFTs(times){if(!times.length)return '<div style="color:var(--text-soft);font-size:13px;padding:4px 0">尚未設定時間點</div>';return times.map((t,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:16px;font-weight:700">${t}</span><button onclick="remFT(${i})" style="background:none;border:none;font-size:18px;color:var(--text-soft);cursor:pointer">✕</button></div>`).join('');}
+function renderFTs(times){if(!times.length)return '<div style="color:var(--text-soft);font-size:13px;padding:4px 0">No times set yet</div>';return times.map((t,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:16px;font-weight:700">${t}</span><button onclick="remFT(${i})" style="background:none;border:none;font-size:18px;color:var(--text-soft);cursor:pointer">✕</button></div>`).join('');}
 let _tTimes=[];
 function addFT(){const t=(document.getElementById('rdnt')||{}).value;if(!t)return;if(!_tTimes.includes(t)){_tTimes.push(t);_tTimes.sort();}document.getElementById('rdtl').innerHTML=renderFTs(_tTimes);}
 function remFT(i){_tTimes.splice(i,1);document.getElementById('rdtl').innerHTML=renderFTs(_tTimes);}
