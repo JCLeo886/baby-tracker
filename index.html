@@ -731,7 +731,7 @@ function tryAutoLogin(){
   if(!GD.clientId||!window.google||!window.google.accounts)return;
   const client=google.accounts.oauth2.initTokenClient({
     client_id:GD.clientId,
-    scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets',
+    scope:'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
     callback:(resp)=>{if(resp.access_token){GD.token=resp.access_token;GD.connected=true;updateSyncUI();addSyncLog('✅ 自動重新登入成功');setTimeout(fullSync,500);}}
   });
   client.requestAccessToken({prompt:''});// no prompt = silent re-auth
