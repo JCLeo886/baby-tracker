@@ -1,0 +1,19 @@
+{
+  "name": "寶寶記錄",
+  "short_name": "寶寶記錄",
+  "description": "新生兒日常記錄 — 哺乳、睡眠、換尿布、換紗布等",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFF8F0",
+  "theme_color": "#FFF8F0",
+  "orientation": "portrait-primary",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='44' fill='%23FF8C61'/><text y='136' font-size='108' x='50%' text-anchor='middle'>👶</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

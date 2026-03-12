@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="寶寶記錄"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#FFF8F0"/>
+<title>寶寶記錄</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700;800&display=swap" rel="stylesheet"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --cream:#FFF8F0;--cream2:#FFF1E4;--peach:#FFCBA4;
+  --coral:#FF8C61;--coral-dark:#E8693D;
+  --text:#2D1B0E;--text-mid:#6B4423;--text-soft:#A0705A;
+  --white:#FFFFFF;--card:#FFFCF8;--border:rgba(124,74,45,0.1);
+  --shadow-sm:0 2px 12px rgba(124,74,45,0.08);
+  --r:20px;--r-sm:14px;--font:'M PLUS Rounded 1c',sans-serif;
+  --green:#34A853;--blue:#4285F4;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:80px;}
+
+.topbar{position:sticky;top:0;z-index:90;background:rgba(255,248,240,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:calc(env(safe-area-inset-top,0px) + 12px) 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.logo{font-size:13px;font-weight:800;color:var(--coral)}
+.baby-selector{display:flex;align-items:center;gap:6px;background:var(--cream2);border-radius:50px;padding:6px 14px;cursor:pointer;border:1.5px solid var(--peach);}
+.baby-selector span{font-size:14px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:50%;background:var(--cream2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform 0.15s;}
+.icon-btn:active{transform:scale(0.92)}
+.sync-status-btn{display:flex;align-items:center;gap:6px;background:var(--cream2);border:none;border-radius:50px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-soft);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background 0.3s;}
+.sync-dot.ok{background:var(--green)}.sync-dot.busy{background:#F5A623;animation:pulse 1s infinite}.sync-dot.err{background:#E53E3E}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.today-header{padding:20px 20px 0}
+.today-date{font-size:13px;font-weight:500;color:var(--text-soft)}
+.today-greeting{font-size:22px;font-weight:800;color:var(--text);line-height:1.2;margin-top:2px}
+
+.summary-strip{display:flex;gap:10px;padding:16px 20px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.summary-strip::-webkit-scrollbar{display:none}
+.sum-card{flex-shrink:0;background:var(--card);border-radius:var(--r-sm);padding:14px 16px;min-width:90px;box-shadow:var(--shadow-sm);border:1px solid var(--border);text-align:center;}
+.sum-card .si{font-size:22px;margin-bottom:6px}.sum-card .sv{font-size:20px;font-weight:800}.sum-card .sl{font-size:11px;color:var(--text-soft);margin-top:2px;font-weight:500}
+
+.sec-title{font-size:12px;font-weight:700;color:var(--text-soft);letter-spacing:1px;text-transform:uppercase;padding:0 20px 10px;}
+
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px 20px;}
+.qbtn{background:var(--card);border:none;border-radius:var(--r);padding:16px;cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);border:1px solid var(--border);text-align:left;transition:transform 0.15s;position:relative;overflow:hidden;}
+.qbtn:active{transform:scale(0.97)}
+.qi{width:44px;height:44px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.ql{font-size:14px;font-weight:700}.qs{font-size:11px;color:var(--text-soft);margin-top:3px;font-weight:500}
+.ic-a{background:#FFF0E8}.ic-b{background:#EBF3FF}.ic-c{background:#FFFBE8}.ic-d{background:#F0F8FF}.ic-e{background:#FFF0F5}.ic-f{background:#F0FFF4}.ic-g{background:#F5F0FF}.ic-h{background:#F5F5F5}
+
+.log-list{padding:0 20px 10px}
+.log-item{background:var(--card);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);border:1px solid var(--border);animation:si 0.25s ease;}
+@keyframes si{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.le{font-size:24px;flex-shrink:0}.lb{flex:1;min-width:0}
+.lt{font-size:13px;font-weight:700}.ld{font-size:12px;color:var(--text-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.ltime{font-size:11px;color:var(--text-soft);font-weight:500}
+.ldel{width:26px;height:26px;border-radius:50%;background:transparent;border:none;cursor:pointer;font-size:14px;color:var(--text-soft);display:flex;align-items:center;justify-content:center;}
+.ldel:active{background:#FFE8E8;color:#E53E3E}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-soft);}
+.ee{font-size:40px;margin-bottom:12px}.et{font-size:14px;font-weight:500;line-height:1.6}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:90;background:rgba(255,248,240,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 8px);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px;transition:transform 0.15s;}
+.nav-btn:active{transform:scale(0.94)}
+.nav-btn .ni{font-size:22px}.nav-btn .nl{font-size:11px;font-weight:700;color:var(--text-soft)}
+.nav-btn.active .nl{color:var(--coral)}
+.nav-btn.active .ni-wrap{background:linear-gradient(135deg,#FFE8D8,#FFCBA4);border-radius:12px;padding:4px 14px;}
+
+.page{display:none}.page.active{display:block}
+
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(45,27,14,0.45);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex}
+.sheet{background:var(--white);border-radius:28px 28px 0 0;width:100%;max-width:480px;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 20px);animation:su 0.3s cubic-bezier(0.34,1.56,0.64,1);max-height:92vh;overflow-y:auto;}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh{width:36px;height:4px;background:#E5DDD8;border-radius:2px;margin:14px auto 0;}
+.shdr{padding:16px 24px 0;display:flex;align-items:center;justify-content:space-between;}
+.shdr-title{font-size:20px;font-weight:800}
+.shdr-close{width:32px;height:32px;border-radius:50%;background:var(--cream2);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.sbody{padding:20px 24px 0}
+
+.field{margin-bottom:18px}.fl{font-size:12px;font-weight:700;color:var(--text-soft);letter-spacing:0.5px;margin-bottom:8px;display:block;}
+.input{width:100%;padding:14px 16px;border:2px solid var(--cream2);border-radius:var(--r-sm);font-size:16px;font-family:var(--font);background:var(--cream);color:var(--text);outline:none;transition:border-color 0.2s,background 0.2s;appearance:none;-webkit-appearance:none;}
+.input:focus{border-color:var(--coral);background:var(--white)}
+.row{display:flex;gap:12px}.row .field{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 16px;border-radius:50px;background:var(--cream2);border:2px solid transparent;cursor:pointer;font-size:14px;font-family:var(--font);font-weight:600;color:var(--text-mid);transition:all 0.15s;}
+.chip.on{background:linear-gradient(135deg,#FFE0CC,#FFCBA4);border-color:var(--coral);color:var(--coral-dark);}
+.sactions{display:flex;gap:10px;padding:20px 24px 0;}
+.btn-cancel{flex:1;padding:16px;border-radius:var(--r-sm);background:var(--cream2);border:none;font-size:16px;font-family:var(--font);font-weight:700;color:var(--text-soft);cursor:pointer;}
+.btn-save{flex:2;padding:16px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--coral),var(--coral-dark));border:none;font-size:16px;font-family:var(--font);font-weight:800;color:white;cursor:pointer;box-shadow:0 4px 16px rgba(255,140,97,0.4);}
+.btn-save:active{transform:scale(0.98)}
+
+/* Charts */
+.stats-wrap{padding:16px 20px 10px}
+.chart-card{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm);border:1px solid var(--border);}
+.chart-title{font-size:14px;font-weight:800;margin-bottom:4px}
+.chart-sub{font-size:12px;color:var(--text-soft);margin-bottom:14px;font-weight:500}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:72px}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bf{width:100%;border-radius:6px 6px 0 0;min-height:3px;transition:height 0.6s ease}
+.bl{font-size:10px;color:var(--text-soft);font-weight:600}.bn2{font-size:10px;font-weight:800;color:var(--text-soft)}
+
+/* Period tabs */
+.period-tabs{display:flex;gap:6px;margin-bottom:18px}
+.ptab{flex:1;padding:9px;border-radius:50px;background:var(--cream2);border:2px solid transparent;cursor:pointer;font-size:13px;font-family:var(--font);font-weight:700;color:var(--text-soft);text-align:center;transition:all 0.15s;}
+.ptab.on{background:linear-gradient(135deg,#FFE0CC,#FFCBA4);border-color:var(--coral);color:var(--coral-dark);}
+
+/* Today summary row */
+.today-sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tscard{background:var(--card);border-radius:var(--r-sm);padding:14px 16px;box-shadow:var(--shadow-sm);border:1px solid var(--border);}
+.tscard .tsi{font-size:18px;margin-bottom:6px}
+.tscard .tsv{font-size:18px;font-weight:800;color:var(--text)}
+.tscard .tss{font-size:11px;color:var(--text-soft);margin-top:2px;font-weight:500}
+.tscard .tssub{font-size:12px;color:var(--coral);font-weight:700;margin-top:3px}
+
+/* Growth chart SVG */
+.growth-chart-wrap{position:relative;margin-top:4px}
+.growth-chart-wrap svg{display:block;width:100%;overflow:visible;}
+.growth-tabs{display:flex;gap:8px;margin-bottom:14px}
+.gtab{padding:7px 14px;border-radius:50px;background:var(--cream2);border:2px solid transparent;cursor:pointer;font-size:12px;font-family:var(--font);font-weight:700;color:var(--text-soft);}
+.gtab.on{background:linear-gradient(135deg,#EBF3FF,#BDD7FF);border-color:#7BB8F0;color:#2C6FAB;}
+.growth-empty{text-align:center;padding:30px 0;color:var(--text-soft);font-size:13px}
+
+/* Stat insight card */
+.insight-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.insight-row:last-child{border-bottom:none}
+.in-icon{font-size:22px;width:30px;text-align:center;flex-shrink:0}
+.in-body{flex:1}.in-label{font-size:13px;font-weight:700}.in-val{font-size:12px;color:var(--text-soft);margin-top:2px}
+
+/* Reminders */
+.rem-wrap{padding:16px 20px}
+.rem-card{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow-sm);border:1px solid var(--border);}
+.rem-item{padding:16px 20px;display:flex;align-items:center;gap:14px;}
+.ri{font-size:22px;width:34px;text-align:center}.rb{flex:1}.rn{font-size:14px;font-weight:700}.rd{font-size:12px;color:var(--text-soft);margin-top:2px}
+.toggle{width:46px;height:26px;border-radius:13px;background:#E5DDD8;border:none;cursor:pointer;position:relative;transition:background 0.25s;flex-shrink:0;}
+.toggle.on{background:var(--coral)}
+.toggle::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:white;top:3px;left:3px;transition:transform 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.toggle.on::after{transform:translateX(20px)}
+
+/* Settings */
+.set-wrap{padding:16px 20px}
+.set-card{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow-sm);border:1px solid var(--border);}
+.set-item{padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.set-item:last-child{border-bottom:none}
+.sii{font-size:20px;width:30px;text-align:center}.sib{flex:1}.sin{font-size:14px;font-weight:700}.sis{font-size:12px;color:var(--text-soft);margin-top:2px}.sia{color:var(--text-soft);font-size:16px}
+
+/* Google Drive Banner */
+.gdrive-banner{border-radius:var(--r);overflow:hidden;background:linear-gradient(135deg,#4285F4,#34A853);padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;box-shadow:0 4px 20px rgba(66,133,244,0.3);margin-bottom:14px;}
+.gdrive-banner.ok{background:linear-gradient(135deg,#34A853,#0F9D58)}
+.gb-icon{font-size:32px;flex-shrink:0}.gb-body{flex:1}.gb-title{font-size:16px;font-weight:800;color:white}.gb-sub{font-size:12px;color:rgba(255,255,255,0.85);margin-top:3px}.gb-arrow{font-size:20px;color:rgba(255,255,255,0.7)}
+
+/* Setup steps */
+.step{display:flex;gap:14px;margin-bottom:20px;align-items:flex-start;}
+.step-n{width:28px;height:28px;border-radius:50%;background:var(--coral);color:white;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.step-b .step-t{font-size:14px;font-weight:700;margin-bottom:4px}.step-b .step-d{font-size:13px;color:var(--text-soft);line-height:1.6}
+.step-b a{color:var(--blue);font-weight:700;text-decoration:none}
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* sync log */
+.sync-log-box{background:var(--cream);border-radius:var(--r-sm);padding:12px 16px;font-size:12px;color:var(--text-soft);max-height:200px;overflow-y:auto;line-height:1.8;white-space:pre-wrap;}
+
+/* Baby picker */
+.baby-list{padding:12px 24px 0}
+.baby-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.baby-row:last-child{border-bottom:none}
+.b-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FFE0CC,#FFCBA4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.b-info{flex:1}.b-name{font-size:16px;font-weight:700}.b-sub{font-size:12px;color:var(--text-soft);margin-top:2px}
+.b-check{font-size:20px;color:var(--coral)}
+.add-baby-row{display:flex;align-items:center;gap:14px;padding:14px 0;cursor:pointer;color:var(--coral);}
+.ab-icon{width:44px;height:44px;border-radius:50%;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px dashed var(--peach);}
+
+.gc{flex:1;padding:14px;border-radius:var(--r-sm);background:var(--cream2);border:2px solid transparent;cursor:pointer;font-size:22px;text-align:center;transition:all 0.15s;}
+.gc span{display:block;font-size:13px;font-weight:700;color:var(--text-mid);margin-top:4px}
+.gc.on{background:linear-gradient(135deg,#FFE0CC,#FFCBA4);border-color:var(--coral);}
+
+.toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 70px);left:50%;transform:translateX(-50%) translateY(-8px);background:var(--text);color:white;padding:11px 22px;border-radius:50px;font-size:14px;font-weight:600;z-index:999;opacity:0;pointer-events:none;transition:all 0.3s;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">🌙 寶寶記錄</div>
+  <div class="baby-selector" onclick="openBabyPicker()">
+    <span id="babyName">寶寶</span>
+    <span style="font-size:10px;color:var(--text-soft)">▾</span>
+  </div>
+  <div class="topbar-right">
+    <button class="sync-status-btn" onclick="onSyncBtn()" id="syncBtn">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLbl">未連結</span>
+    </button>
+    <button class="icon-btn" onclick="switchPage('settings')">⚙️</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- HOME -->
+<div class="page active" id="pageHome">
+  <div class="today-header">
+    <div class="today-date" id="todayDate"></div>
+    <div class="today-greeting" id="todayGreeting"></div>
+  </div>
+  <div class="summary-strip">
+    <div class="sum-card"><div class="si">🍼</div><div class="sv" id="sumFeed">0</div><div class="sl">哺乳</div></div>
+    <div class="sum-card"><div class="si">😴</div><div class="sv" id="sumSleep">0</div><div class="sl">睡眠</div></div>
+    <div class="sum-card"><div class="si">🩲</div><div class="sv" id="sumDiaper">0</div><div class="sl">尿布</div></div>
+    <div class="sum-card"><div class="si">🥛</div><div class="sv" id="sumPump">0</div><div class="sl">擠奶</div></div>
+    <div class="sum-card"><div class="si">🩹</div><div class="sv" id="sumGauze">0</div><div class="sl">換紗布</div></div>
+    <div class="sum-card"><div class="si">💊</div><div class="sv" id="sumMed">0</div><div class="sl">用藥</div></div>
+  </div>
+  <div class="sec-title">快速記錄</div>
+  <div class="quick-grid">
+    <button class="qbtn" onclick="openLog('feed')"><div class="qi ic-a">🍼</div><div><div class="ql">哺乳／喝奶</div><div class="qs" id="qlFeed">尚無記錄</div></div></button>
+    <button class="qbtn" onclick="openLog('sleep')"><div class="qi ic-b">😴</div><div><div class="ql">睡眠</div><div class="qs" id="qlSleep">尚無記錄</div></div></button>
+    <button class="qbtn" onclick="openLog('diaper')"><div class="qi ic-c">🩲</div><div><div class="ql">換尿布</div><div class="qs" id="qlDiaper">尚無記錄</div></div></button>
+    <button class="qbtn" onclick="openLog('pump')"><div class="qi ic-d">🥛</div><div><div class="ql">擠奶</div><div class="qs" id="qlPump">尚無記錄</div></div></button>
+    <button class="qbtn" onclick="openLog('gauze')"><div class="qi ic-e">🩹</div><div><div class="ql">換紗布</div><div class="qs" id="qlGauze">尚無記錄</div></div></button>
+    <button class="qbtn" onclick="openLog('medicine')"><div class="qi ic-f">💊</div><div><div class="ql">用藥</div><div class="qs" id="qlMedicine">尚無記錄</div></div></button>
+    <button class="qbtn" onclick="openLog('growth')"><div class="qi ic-g">⚖️</div><div><div class="ql">體重／身高</div><div class="qs" id="qlGrowth">尚無記錄</div></div></button>
+    <button class="qbtn" onclick="openLog('memo')"><div class="qi ic-h">📝</div><div><div class="ql">備註</div><div class="qs">記錄其他事項</div></div></button>
+  </div>
+  <div class="sec-title">最近記錄</div>
+  <div class="log-list" id="logList"></div>
+</div>
+
+<!-- STATS -->
+<div class="page" id="pageStats">
+  <div class="stats-wrap">
+    <div class="period-tabs" style="margin-top:8px">
+      <div class="ptab on" data-days="7" onclick="setPeriod(7,this)">7天</div>
+      <div class="ptab" data-days="14" onclick="setPeriod(14,this)">14天</div>
+      <div class="ptab" data-days="30" onclick="setPeriod(30,this)">30天</div>
+    </div>
+    <div class="sec-title" style="padding:0 0 10px">今日快覽</div>
+    <div class="today-sum-grid" id="todaySumGrid"></div>
+    <div class="chart-card" style="margin-bottom:14px">
+      <div class="chart-title">💡 今日小結</div>
+      <div id="insightList" style="margin-top:10px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🍼 哺乳趨勢</div>
+      <div class="chart-sub" id="feedChartSub"></div>
+      <div class="bar-chart" id="chartFeed"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">😴 睡眠趨勢</div>
+      <div class="chart-sub" id="sleepChartSub"></div>
+      <div class="bar-chart" id="chartSleep"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🩲 換尿布趨勢</div>
+      <div class="chart-sub" id="diaperChartSub"></div>
+      <div class="bar-chart" id="chartDiaper"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🥛 擠奶趨勢</div>
+      <div class="chart-sub" id="pumpChartSub"></div>
+      <div class="bar-chart" id="chartPump"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📈 成長曲線</div>
+      <div class="growth-tabs">
+        <div class="gtab on" data-m="weight" onclick="setGrowthMetric('weight',this)">⚖️ 體重</div>
+        <div class="gtab" data-m="height" onclick="setGrowthMetric('height',this)">📏 身高</div>
+        <div class="gtab" data-m="head" onclick="setGrowthMetric('head',this)">🔵 頭圍</div>
+      </div>
+      <div class="growth-chart-wrap" id="growthChartWrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- REMINDERS -->
+<div class="page" id="pageReminders">
+  <div class="rem-wrap">
+    <div class="sec-title" style="padding:4px 0 14px">提醒設定</div>
+    <div class="rem-card" id="remList"></div>
+    <p style="font-size:12px;color:var(--text-soft);text-align:center;line-height:1.7;padding:8px 0">⚠️ iOS 請先「加入主畫面」再允許通知</p>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="pageSettings">
+  <div class="set-wrap">
+    <div class="sec-title" style="padding:4px 0 4px">☁️ Google 雲端同步</div>
+    <div id="gdriveBanner" class="gdrive-banner" onclick="openGdriveSetup()">
+      <div class="gb-icon">☁️</div>
+      <div class="gb-body"><div class="gb-title" id="gdTitle">連結 Google Drive</div><div class="gb-sub" id="gdSub">點此設定，讓兩支手機即時同步</div></div>
+      <div class="gb-arrow">›</div>
+    </div>
+    <div class="set-card">
+      <div class="set-item" onclick="manualSync()"><div class="sii">🔄</div><div class="sib"><div class="sin">立即同步</div><div class="sis" id="lastSyncLbl">尚未同步</div></div><div class="sia">›</div></div>
+      <div class="set-item" onclick="openSyncLog()"><div class="sii">📋</div><div class="sib"><div class="sin">同步紀錄</div><div class="sis">查看最近的同步狀態</div></div><div class="sia">›</div></div>
+      <div class="set-item" id="disconnectRow" style="display:none" onclick="disconnectGoogle()"><div class="sii">🔌</div><div class="sib"><div class="sin" style="color:#E53E3E">中斷 Google 連結</div><div class="sis">資料仍保存在手機上</div></div><div class="sia">›</div></div>
+    </div>
+    <div class="sec-title" style="padding:12px 0 4px">👶 寶寶管理</div>
+    <div class="set-card" id="babySetList"></div>
+    <div class="sec-title" style="padding:12px 0 4px">📱 安裝說明</div>
+    <div class="set-card">
+      <div class="set-item"><div class="sii">🍎</div><div class="sib"><div class="sin">iOS 安裝</div><div class="sis">Safari → 分享 → 加入主畫面</div></div></div>
+      <div class="set-item"><div class="sii">🤖</div><div class="sib"><div class="sin">Android 安裝</div><div class="sis">Chrome → ⋮ 選單 → 安裝應用程式</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" id="navHome" onclick="switchPage('home')"><div class="ni-wrap" id="wHome"><div class="ni">🏠</div></div><div class="nl">首頁</div></button>
+  <button class="nav-btn" id="navStats" onclick="switchPage('stats')"><div class="ni-wrap" id="wStats"><div class="ni">📊</div></div><div class="nl">統計</div></button>
+  <button class="nav-btn" id="navReminders" onclick="switchPage('reminders')"><div class="ni-wrap" id="wReminders"><div class="ni">🔔</div></div><div class="nl">提醒</div></button>
+  <button class="nav-btn" id="navSettings" onclick="switchPage('settings')"><div class="ni-wrap" id="wSettings"><div class="ni">⚙️</div></div><div class="nl">設定</div></button>
+</div>
+
+<!-- LOG MODAL -->
+<div class="overlay" id="logOv" onclick="ovClick(event,'logOv')">
+  <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title" id="logTitle">記錄</div><button class="shdr-close" onclick="closeOv('logOv')">✕</button></div><div class="sbody" id="logBody"></div>
+  <div class="sactions"><button class="btn-cancel" onclick="closeOv('logOv')">取消</button><button class="btn-save" onclick="saveLog()">儲存 ✓</button></div></div>
+</div>
+
+<!-- BABY PICKER -->
+<div class="overlay" id="babyOv" onclick="ovClick(event,'babyOv')">
+  <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title">選擇寶寶</div><button class="shdr-close" onclick="closeOv('babyOv')">✕</button></div><div class="baby-list" id="babyList"></div></div>
+</div>
+
+<!-- ADD BABY -->
+<div class="overlay" id="addBabyOv" onclick="ovClick(event,'addBabyOv')">
+  <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title">新增寶寶 👶</div><button class="shdr-close" onclick="closeOv('addBabyOv')">✕</button></div>
+  <div class="sbody">
+    <div class="field"><label class="fl">寶寶名字</label><input class="input" id="newName" placeholder="輸入寶寶的暱稱" type="text"/></div>
+    <div class="field"><label class="fl">生日</label><input class="input" id="newBirth" type="date"/></div>
+    <div class="field"><label class="fl">性別</label><div style="display:flex;gap:10px"><div class="gc on" data-v="girl" onclick="pickG(this)">👧<span>女寶寶</span></div><div class="gc" data-v="boy" onclick="pickG(this)">👦<span>男寶寶</span></div></div></div>
+  </div>
+  <div class="sactions"><button class="btn-cancel" onclick="closeOv('addBabyOv')">取消</button><button class="btn-save" onclick="saveNewBaby()">新增</button></div></div>
+</div>
+
+<!-- GOOGLE DRIVE SETUP -->
+<div class="overlay" id="gdriveOv" onclick="ovClick(event,'gdriveOv')">
+  <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title">☁️ Google Drive 設定</div><button class="shdr-close" onclick="closeOv('gdriveOv')">✕</button></div>
+  <div class="sbody" id="gdriveBody"></div></div>
+</div>
+
+<!-- SYNC LOG -->
+<div class="overlay" id="syncLogOv" onclick="ovClick(event,'syncLogOv')">
+  <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title">📋 同步紀錄</div><button class="shdr-close" onclick="closeOv('syncLogOv')">✕</button></div>
+  <div class="sbody"><div class="sync-log-box" id="syncLogBox">（尚無記錄）</div></div>
+  <div class="sactions"><button class="btn-save" style="flex:1" onclick="closeOv('syncLogOv')">關閉</button></div></div>
+</div>
+
+<!-- REMINDER DETAIL -->
+<div class="overlay" id="remDetailOv" onclick="ovClick(event,'remDetailOv')">
+  <div class="sheet"><div class="sh"></div><div class="shdr"><div class="shdr-title" id="remDetailTitle">提醒設定</div><button class="shdr-close" onclick="closeOv('remDetailOv')">✕</button></div>
+  <div class="sbody" id="remDetailBody"></div>
+  <div class="sactions"><button class="btn-cancel" onclick="closeOv('remDetailOv')">取消</button><button class="btn-save" onclick="saveRemDetail()">儲存提醒</button></div></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let S={babies:[],currentId:null,logs:[],reminders:{}};
+let GD={token:null,clientId:'',folderId:'',jsonFileId:'',sheetId:'',connected:false,lastSync:'',syncLog:[]};
+
+const save=()=>localStorage.setItem('bt4',JSON.stringify(S));
+const load=()=>{try{const r=localStorage.getItem('bt4');if(r)Object.assign(S,JSON.parse(r));}catch(e){}};
+const saveGD=()=>localStorage.setItem('btGD4',JSON.stringify({clientId:GD.clientId,folderId:GD.folderId,jsonFileId:GD.jsonFileId,sheetId:GD.sheetId,lastSync:GD.lastSync,syncLog:GD.syncLog}));
+const loadGD=()=>{try{const r=localStorage.getItem('btGD4');if(r){const d=JSON.parse(r);Object.assign(GD,{clientId:d.clientId||'',folderId:d.folderId||'',jsonFileId:d.jsonFileId||'',sheetId:d.sheetId||'',lastSync:d.lastSync||'',syncLog:d.syncLog||[]});}}catch(e){}};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+function init(){
+  load();loadGD();
+  if(!S.babies.length){S.babies.push({id:uid(),name:'小寶貝',gender:'girl',birth:''});S.currentId=S.babies[0].id;save();}
+  if(!S.currentId)S.currentId=S.babies[0].id;
+  ['feed','sleep','diaper','pump','gauze','medicine'].forEach(t=>{if(!S.reminders[t])S.reminders[t]={on:false,mode:'interval',interval:120,times:[]};});
+  updateHeader();renderLogs();updateSummary();renderCharts();renderRems();renderBabySet();setDate();updateSyncUI();scheduleRems();
+  // Auto re-login if client ID exists
+  if(GD.clientId) setTimeout(tryAutoLogin,2000);
+}
+
+function setDate(){
+  const d=new Date(),days=['日','一','二','三','四','五','六'];
+  document.getElementById('todayDate').textContent=`${d.getMonth()+1}月${d.getDate()}日 星期${days[d.getDay()]}`;
+  const h=d.getHours();
+  document.getElementById('todayGreeting').textContent=h<6?'深夜辛苦了 🌙':h<12?'早安！加油 ☀️':h<18?'午安！辛苦了 🌤':h<22?'晚上好 🌆':'夜深了 🌙';
+}
+const curBaby=()=>S.babies.find(b=>b.id===S.currentId);
+function updateHeader(){const b=curBaby();document.getElementById('babyName').textContent=b?(b.name||'寶寶'):'寶寶';}
+
+// ═══════════════════════════════════════
+// PAGE
+// ═══════════════════════════════════════
+function switchPage(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
+  document.getElementById('page'+p[0].toUpperCase()+p.slice(1)).classList.add('active');
+  const nb=document.getElementById('nav'+p[0].toUpperCase()+p.slice(1));if(nb)nb.classList.add('active');
+  if(p==='stats')renderCharts();
+  if(p==='reminders')renderRems();
+  if(p==='settings'){renderBabySet();updateSettingsUI();}
+}
+
+// ═══════════════════════════════════════
+// LOG FORMS
+// ═══════════════════════════════════════
+let activeType='';
+const logCfg={
+  feed:{t:'🍼 哺乳／喝奶',h:()=>`<div class="field"><label class="fl">時間</label><input class="input" id="ft" type="datetime-local" value="${lnow()}"/></div><div class="field"><label class="fl">方式</label><div class="chips" id="fc"><div class="chip on" data-v="母乳左邊" onclick="pc(this,'fc')">母乳左</div><div class="chip" data-v="母乳右邊" onclick="pc(this,'fc')">母乳右</div><div class="chip" data-v="兩側" onclick="pc(this,'fc')">兩側</div><div class="chip" data-v="配方奶" onclick="pc(this,'fc')">配方奶</div><div class="chip" data-v="母乳瓶餵" onclick="pc(this,'fc')">母乳瓶餵</div></div></div><div class="row"><div class="field"><label class="fl">時長（分）</label><input class="input" id="fd" type="number" inputmode="numeric" placeholder="例：15"/></div><div class="field"><label class="fl">奶量（ml）</label><input class="input" id="fa" type="number" inputmode="numeric" placeholder="例：120"/></div></div><div class="field"><label class="fl">備註</label><input class="input" id="fn" placeholder="（選填）"/></div>`},
+  sleep:{t:'😴 睡眠',h:()=>`<div class="row"><div class="field"><label class="fl">開始時間</label><input class="input" id="ss" type="datetime-local" value="${lnow()}"/></div><div class="field"><label class="fl">結束時間</label><input class="input" id="se" type="datetime-local"/></div></div><div class="field"><label class="fl">地點</label><div class="chips" id="sl"><div class="chip on" data-v="嬰兒床" onclick="pc(this,'sl')">嬰兒床</div><div class="chip" data-v="懷抱" onclick="pc(this,'sl')">懷抱</div><div class="chip" data-v="推車" onclick="pc(this,'sl')">推車</div><div class="chip" data-v="大床" onclick="pc(this,'sl')">大床</div></div></div><div class="field"><label class="fl">備註</label><input class="input" id="sn" placeholder="（選填）"/></div>`},
+  diaper:{t:'🩲 換尿布',h:()=>`<div class="field"><label class="fl">時間</label><input class="input" id="dt" type="datetime-local" value="${lnow()}"/></div><div class="field"><label class="fl">類型</label><div class="chips" id="dty"><div class="chip on" data-v="尿尿" onclick="pc(this,'dty')">💧 尿尿</div><div class="chip" data-v="便便" onclick="pc(this,'dty')">💩 便便</div><div class="chip" data-v="混合" onclick="pc(this,'dty')">混合</div><div class="chip" data-v="乾淨" onclick="pc(this,'dty')">乾淨</div></div></div><div class="field"><label class="fl">顏色</label><div class="chips" id="dc"><div class="chip on" data-v="正常黃" onclick="pc(this,'dc')">🟡 正常黃</div><div class="chip" data-v="棕色" onclick="pc(this,'dc')">🟤 棕色</div><div class="chip" data-v="綠色" onclick="pc(this,'dc')">🟢 綠色</div><div class="chip" data-v="黑色" onclick="pc(this,'dc')">⚫ 黑色</div><div class="chip" data-v="其他" onclick="pc(this,'dc')">其他</div></div></div><div class="field"><label class="fl">備註</label><input class="input" id="dn" placeholder="（選填）"/></div>`},
+  pump:{t:'🥛 擠奶',h:()=>`<div class="field"><label class="fl">時間</label><input class="input" id="pt" type="datetime-local" value="${lnow()}"/></div><div class="field"><label class="fl">側別</label><div class="chips" id="ps"><div class="chip on" data-v="兩側" onclick="pc(this,'ps')">兩側</div><div class="chip" data-v="左側" onclick="pc(this,'ps')">左側</div><div class="chip" data-v="右側" onclick="pc(this,'ps')">右側</div></div></div><div class="row"><div class="field"><label class="fl">時長（分）</label><input class="input" id="pd" type="number" inputmode="numeric" placeholder="例：20"/></div><div class="field"><label class="fl">總量（ml）</label><input class="input" id="pa" type="number" inputmode="numeric" placeholder="例：150"/></div></div><div class="field"><label class="fl">備註</label><input class="input" id="pn" placeholder="（選填）"/></div>`},
+  gauze:{t:'🩹 換紗布',h:()=>`<div class="field"><label class="fl">時間</label><input class="input" id="gt" type="datetime-local" value="${lnow()}"/></div><div class="field"><label class="fl">傷口狀況</label><div class="chips" id="gs"><div class="chip on" data-v="正常" onclick="pc(this,'gs')">✅ 正常</div><div class="chip" data-v="稍微滲血" onclick="pc(this,'gs')">🔶 稍滲血</div><div class="chip" data-v="需注意" onclick="pc(this,'gs')">⚠️ 需注意</div><div class="chip" data-v="已癒合" onclick="pc(this,'gs')">🎉 已癒合</div></div></div><div class="field"><label class="fl">備註</label><input class="input" id="gn" placeholder="例：稍微紅腫..."/></div>`},
+  medicine:{t:'💊 用藥',h:()=>`<div class="field"><label class="fl">時間</label><input class="input" id="mt" type="datetime-local" value="${lnow()}"/></div><div class="field"><label class="fl">藥名</label><input class="input" id="mn" placeholder="例：益生菌、維生素D..."/></div><div class="row"><div class="field"><label class="fl">劑量</label><input class="input" id="md" placeholder="例：5ml"/></div><div class="field"><label class="fl">方式</label><div class="chips" id="mm"><div class="chip on" data-v="口服" onclick="pc(this,'mm')">口服</div><div class="chip" data-v="外用" onclick="pc(this,'mm')">外用</div></div></div></div><div class="field"><label class="fl">備註</label><input class="input" id="mb" placeholder="（選填）"/></div>`},
+  growth:{t:'⚖️ 體重／身高',h:()=>`<div class="field"><label class="fl">時間</label><input class="input" id="grt" type="datetime-local" value="${lnow()}"/></div><div class="row"><div class="field"><label class="fl">體重（kg）</label><input class="input" id="grw" type="number" step="0.01" inputmode="decimal" placeholder="例：3.85"/></div><div class="field"><label class="fl">身高（cm）</label><input class="input" id="grh" type="number" step="0.1" inputmode="decimal" placeholder="例：52.0"/></div></div><div class="field"><label class="fl">頭圍（cm）</label><input class="input" id="grhd" type="number" step="0.1" inputmode="decimal" placeholder="（選填）例：34.5"/></div><div class="field"><label class="fl">備註</label><input class="input" id="grn" placeholder="（選填）"/></div>`},
+  memo:{t:'📝 備註',h:()=>`<div class="field"><label class="fl">時間</label><input class="input" id="met" type="datetime-local" value="${lnow()}"/></div><div class="field"><label class="fl">內容</label><textarea class="input" id="metx" rows="4" placeholder="記錄任何事項..." style="resize:none"></textarea></div>`}
+};
+
+function openLog(type){activeType=type;const c=logCfg[type];document.getElementById('logTitle').textContent=c.t;document.getElementById('logBody').innerHTML=c.h();document.getElementById('logOv').classList.add('open');}
+function pc(el,g){document.querySelectorAll('#'+g+' .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function gc(g){const e=document.querySelector('#'+g+' .chip.on');return e?e.dataset.v:'';}
+function lnow(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
+function tv(id){return(document.getElementById(id)||{}).value||'';}
+
+function saveLog(){
+  const b=curBaby();if(!b)return;
+  const entry={id:uid(),babyId:S.currentId,babyName:b.name,type:activeType,ts:new Date().toISOString(),display:'',detail:{}};
+  try{
+    if(activeType==='feed'){const t=tv('ft');if(t)entry.ts=new Date(t).toISOString();entry.detail={type:gc('fc'),dur:tv('fd'),amt:tv('fa'),note:tv('fn')};const p=[entry.detail.type];if(entry.detail.amt)p.push(entry.detail.amt+'ml');if(entry.detail.dur)p.push(entry.detail.dur+'分鐘');entry.display=p.join(' · ');}
+    else if(activeType==='sleep'){const s=tv('ss'),e=tv('se');if(s)entry.ts=new Date(s).toISOString();entry.detail={loc:gc('sl'),endTs:e?new Date(e).toISOString():'',note:tv('sn')};if(e){const m=Math.round((new Date(e)-new Date(s))/60000);entry.display=entry.detail.loc+' · '+Math.floor(m/60)+'小時'+m%60+'分';}else entry.display=entry.detail.loc+' · 進行中';}
+    else if(activeType==='diaper'){const t=tv('dt');if(t)entry.ts=new Date(t).toISOString();entry.detail={type:gc('dty'),color:gc('dc'),note:tv('dn')};entry.display=entry.detail.type+' · '+entry.detail.color;}
+    else if(activeType==='pump'){const t=tv('pt');if(t)entry.ts=new Date(t).toISOString();entry.detail={side:gc('ps'),dur:tv('pd'),amt:tv('pa'),note:tv('pn')};const p=[entry.detail.side];if(entry.detail.amt)p.push(entry.detail.amt+'ml');if(entry.detail.dur)p.push(entry.detail.dur+'分鐘');entry.display=p.join(' · ');}
+    else if(activeType==='gauze'){const t=tv('gt');if(t)entry.ts=new Date(t).toISOString();entry.detail={status:gc('gs'),note:tv('gn')};entry.display=entry.detail.status+(entry.detail.note?' · '+entry.detail.note:'');}
+    else if(activeType==='medicine'){const t=tv('mt');if(t)entry.ts=new Date(t).toISOString();entry.detail={name:tv('mn'),dose:tv('md'),method:gc('mm'),note:tv('mb')};entry.display=(entry.detail.name||'藥品')+(entry.detail.dose?' · '+entry.detail.dose:'');}
+    else if(activeType==='growth'){const t=tv('grt');if(t)entry.ts=new Date(t).toISOString();entry.detail={weight:tv('grw'),height:tv('grh'),head:tv('grhd'),note:tv('grn')};const p=[];if(entry.detail.weight)p.push(entry.detail.weight+'kg');if(entry.detail.height)p.push(entry.detail.height+'cm');if(entry.detail.head)p.push('頭圍'+entry.detail.head+'cm');entry.display=p.join(' · ')||'已記錄';}
+    else if(activeType==='memo'){const t=tv('met');if(t)entry.ts=new Date(t).toISOString();entry.detail={text:tv('metx')};entry.display=entry.detail.text||'（無內容）';}
+  }catch(e){console.error(e);}
+  S.logs.unshift(entry);save();
+  closeOv('logOv');renderLogs();updateSummary();renderCharts();toast('✅ 已記錄');scheduleRems();
+  if(GD.connected&&GD.token)setTimeout(()=>syncEntry(entry),300);
+}
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+const EM={feed:'🍼',sleep:'😴',diaper:'🩲',pump:'🥛',gauze:'🩹',medicine:'💊',growth:'⚖️',memo:'📝'};
+const TN={feed:'哺乳',sleep:'睡眠',diaper:'換尿布',pump:'擠奶',gauze:'換紗布',medicine:'用藥',growth:'體重身高',memo:'備註'};
+
+function fmtT(iso){const d=new Date(iso),h=d.getHours().toString().padStart(2,'0'),m=d.getMinutes().toString().padStart(2,'0'),today=new Date(),yest=new Date(today);yest.setDate(today.getDate()-1);if(d.toDateString()===today.toDateString())return`今天 ${h}:${m}`;if(d.toDateString()===yest.toDateString())return`昨天 ${h}:${m}`;return`${d.getMonth()+1}/${d.getDate()} ${h}:${m}`;}
+
+function renderLogs(){
+  const el=document.getElementById('logList');
+  const logs=S.logs.filter(l=>l.babyId===S.currentId);
+  if(!logs.length){el.innerHTML='<div class="empty-state"><div class="ee">🐣</div><div class="et">還沒有記錄<br>按上方按鈕開始吧！</div></div>';return;}
+  el.innerHTML=logs.slice(0,40).map(l=>`<div class="log-item"><div class="le">${EM[l.type]||'📝'}</div><div class="lb"><div class="lt">${TN[l.type]||l.type}</div><div class="ld">${l.display||''}</div></div><div class="lm"><div class="ltime">${fmtT(l.ts)}</div><button class="ldel" onclick="delLog('${l.id}')">✕</button></div></div>`).join('');
+  ['feed','sleep','diaper','pump','gauze','medicine','growth'].forEach(t=>{const last=logs.find(l=>l.type===t);const e=document.getElementById('ql'+t[0].toUpperCase()+t.slice(1));if(e)e.textContent=last?fmtT(last.ts):'尚無記錄';});
+}
+
+function delLog(id){if(!confirm('確定刪除？'))return;S.logs=S.logs.filter(l=>l.id!==id);save();renderLogs();updateSummary();renderCharts();toast('🗑 已刪除');if(GD.connected&&GD.token)setTimeout(pushJson,300);}
+
+function todayStr(){const d=new Date();return`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;}
+function updateSummary(){
+  const today=todayStr(),logs=S.logs.filter(l=>l.babyId===S.currentId&&l.ts.startsWith(today));
+  ['Feed','Sleep','Diaper','Pump','Gauze','Med'].forEach((k,i)=>document.getElementById('sum'+k).textContent=logs.filter(l=>l.type===['feed','sleep','diaper','pump','gauze','medicine'][i]).length);
+}
+
+// ═══════════════════════════════════════
+// STAGE 3: STATS ENGINE
+// ═══════════════════════════════════════
+let statsPeriod = 7;
+let growthMetric = 'weight';
+
+function setPeriod(days, el) {
+  statsPeriod = days;
+  document.querySelectorAll('.ptab').forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+  renderCharts();
+}
+
+function setGrowthMetric(m, el) {
+  growthMetric = m;
+  document.querySelectorAll('.gtab').forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+  renderGrowthChart();
+}
+
+// Get date strings for last N days
+function getDayStrings(n) {
+  const days = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const str = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+    const lbl = i === 0 ? '今天' : i === 1 ? '昨天' : n <= 7 ? `${d.getMonth()+1}/${d.getDate()}` : `${d.getDate()}`;
+    days.push({ str, lbl, d });
+  }
+  return days;
+}
+
+function minsToHM(m) {
+  if (!m) return '0分';
+  const h = Math.floor(m / 60), mn = m % 60;
+  return (h ? h + '小時' : '') + (mn ? mn + '分' : '');
+}
+
+// ── Today summary cards ──
+function renderTodaySummary() {
+  const today = todayStr();
+  const logs = S.logs.filter(l => l.babyId === S.currentId && l.ts.startsWith(today));
+
+  const feedLogs = logs.filter(l => l.type === 'feed');
+  const feedAmt = feedLogs.reduce((s, l) => s + (parseFloat(l.detail?.amt) || 0), 0);
+  const feedDur = feedLogs.reduce((s, l) => s + (parseInt(l.detail?.dur) || 0), 0);
+
+  const sleepLogs = logs.filter(l => l.type === 'sleep' && l.detail?.endTs);
+  const sleepMins = sleepLogs.reduce((s, l) => {
+    const m = Math.round((new Date(l.detail.endTs) - new Date(l.ts)) / 60000);
+    return s + (m > 0 ? m : 0);
+  }, 0);
+
+  const pumpLogs = logs.filter(l => l.type === 'pump');
+  const pumpAmt = pumpLogs.reduce((s, l) => s + (parseFloat(l.detail?.amt) || 0), 0);
+
+  const diaperCnt = logs.filter(l => l.type === 'diaper').length;
+
+  document.getElementById('todaySumGrid').innerHTML = `
+    <div class="tscard"><div class="tsi">🍼</div><div class="tsv">${feedLogs.length} 次</div><div class="tss">哺乳</div><div class="tssub">${feedAmt ? feedAmt + 'ml' : feedDur ? feedDur + '分鐘' : '未記錄量'}</div></div>
+    <div class="tscard"><div class="tsi">😴</div><div class="tsv">${sleepLogs.length} 次</div><div class="tss">睡眠</div><div class="tssub">${sleepMins ? minsToHM(sleepMins) : '無完整紀錄'}</div></div>
+    <div class="tscard"><div class="tsi">🩲</div><div class="tsv">${diaperCnt} 次</div><div class="tss">換尿布</div><div class="tssub">${diaperCnt > 0 ? logs.filter(l=>l.type==='diaper')[0]?.detail?.type || '' : '尚無記錄'}</div></div>
+    <div class="tscard"><div class="tsi">🥛</div><div class="tsv">${pumpLogs.length} 次</div><div class="tss">擠奶</div><div class="tssub">${pumpAmt ? pumpAmt + 'ml' : '未記錄量'}</div></div>`;
+
+  // Insights
+  const insights = [];
+  if (feedLogs.length >= 8) insights.push({ icon: '🍼', label: '哺乳次數充足', val: `今日 ${feedLogs.length} 次，很棒！` });
+  else if (feedLogs.length > 0) insights.push({ icon: '🍼', label: '哺乳提醒', val: `今日 ${feedLogs.length} 次，新生兒建議 8-12 次` });
+  if (sleepMins >= 14 * 60) insights.push({ icon: '😴', label: '睡眠充足', val: `今日累計 ${minsToHM(sleepMins)}` });
+  else if (sleepMins > 0) insights.push({ icon: '😴', label: '睡眠時長', val: `今日累計 ${minsToHM(sleepMins)}（新生兒建議 14-17 小時）` });
+  if (diaperCnt >= 6) insights.push({ icon: '🩲', label: '排泄正常', val: `今日 ${diaperCnt} 次，水分攝取充足` });
+  const lastFeed = feedLogs[0];
+  if (lastFeed) {
+    const mins = Math.round((Date.now() - new Date(lastFeed.ts)) / 60000);
+    if (mins > 180) insights.push({ icon: '⏰', label: '距上次哺乳', val: `已過 ${minsToHM(mins)}，可能需要餵食` });
+  }
+  if (!insights.length) insights.push({ icon: '🌟', label: '開始記錄吧！', val: '今日尚無記錄，點首頁按鈕新增' });
+
+  document.getElementById('insightList').innerHTML = insights.map(ins =>
+    `<div class="insight-row"><div class="in-icon">${ins.icon}</div><div class="in-body"><div class="in-label">${ins.label}</div><div class="in-val">${ins.val}</div></div></div>`
+  ).join('');
+}
+
+// ── Bar charts ──
+const CC = { feed: '#FFCBA4', sleep: '#BDD7FF', diaper: '#FFEAA0', pump: '#B8E8FF' };
+
+function renderCharts() {
+  renderTodaySummary();
+  renderBarChart('feed');
+  renderBarChart('sleep');
+  renderBarChart('diaper');
+  renderBarChart('pump');
+  renderGrowthChart();
+}
+
+function renderBarChart(type) {
+  const el = document.getElementById('chart' + type[0].toUpperCase() + type.slice(1));
+  const subEl = document.getElementById(type + 'ChartSub');
+  if (!el) return;
+
+  const days = getDayStrings(statsPeriod);
+  // For display, show only up to 14 bars (group if 30 days)
+  const showDays = statsPeriod <= 14 ? days : days.filter((_, i) => i % 3 === 0 || i === days.length - 1);
+
+  const data = showDays.map(day => {
+    const dayLogs = S.logs.filter(l => l.babyId === S.currentId && l.type === type && l.ts.startsWith(day.str));
+    let val = dayLogs.length;
+    let sub = '';
+    if (type === 'feed') {
+      const ml = dayLogs.reduce((s, l) => s + (parseFloat(l.detail?.amt) || 0), 0);
+      sub = ml ? ml + 'ml' : '';
+    } else if (type === 'sleep') {
+      const mins = dayLogs.filter(l => l.detail?.endTs).reduce((s, l) => {
+        const m = Math.round((new Date(l.detail.endTs) - new Date(l.ts)) / 60000);
+        return s + (m > 0 ? m : 0);
+      }, 0);
+      sub = mins ? minsToHM(mins) : '';
+    } else if (type === 'pump') {
+      const ml = dayLogs.reduce((s, l) => s + (parseFloat(l.detail?.amt) || 0), 0);
+      sub = ml ? ml + 'ml' : '';
+    }
+    return { lbl: day.lbl, cnt: val, sub };
+  });
+
+  const maxVal = Math.max(...data.map(d => d.cnt), 1);
+  const totalCnt = data.reduce((s, d) => s + d.cnt, 0);
+  const avgCnt = (totalCnt / days.length).toFixed(1);
+
+  // Sub-label under chart title
+  if (subEl) {
+    const labels = {
+      feed: `${statsPeriod}天共 ${totalCnt} 次，日均 ${avgCnt} 次`,
+      sleep: `${statsPeriod}天共 ${totalCnt} 次`,
+      diaper: `${statsPeriod}天共 ${totalCnt} 次，日均 ${avgCnt} 次`,
+      pump: `${statsPeriod}天共 ${totalCnt} 次，日均 ${avgCnt} 次`
+    };
+    subEl.textContent = labels[type] || '';
+  }
+
+  el.innerHTML = data.map(d => `
+    <div class="bc">
+      <div class="bn2">${d.cnt || ''}</div>
+      <div class="bf" style="height:${Math.round(d.cnt / maxVal * 56) + 4}px;background:${CC[type]}"></div>
+      <div class="bl">${d.lbl}</div>
+    </div>`).join('');
+}
+
+// ── Growth curve SVG chart ──
+function renderGrowthChart() {
+  const wrap = document.getElementById('growthChartWrap');
+  if (!wrap) return;
+
+  const growthLogs = S.logs
+    .filter(l => l.babyId === S.currentId && l.type === 'growth' && l.detail?.[growthMetric])
+    .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+
+  if (growthLogs.length < 2) {
+    const labels = { weight: '體重(kg)', height: '身高(cm)', head: '頭圍(cm)' };
+    wrap.innerHTML = `<div class="growth-empty">
+      ${growthLogs.length === 0 ? '尚無成長記錄<br><span style="font-size:12px">新增「體重／身高」記錄後顯示曲線圖</span>' : '至少需要 2 筆記錄才能繪製曲線'}
+    </div>`;
+    return;
+  }
+
+  const vals = growthLogs.map(l => parseFloat(l.detail[growthMetric]));
+  const minV = Math.min(...vals), maxV = Math.max(...vals);
+  const range = maxV - minV || 0.5;
+  const pad = range * 0.15;
+  const lo = minV - pad, hi = maxV + pad;
+
+  const W = 320, H = 120, PL = 40, PR = 10, PT = 10, PB = 30;
+  const cw = W - PL - PR, ch = H - PT - PB;
+
+  const xScale = i => PL + (i / (growthLogs.length - 1)) * cw;
+  const yScale = v => PT + ch - ((v - lo) / (hi - lo)) * ch;
+
+  // Build SVG path
+  const pts = growthLogs.map((l, i) => ({ x: xScale(i), y: yScale(parseFloat(l.detail[growthMetric])) }));
+  const path = pts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+  const areaPath = `${path} L${pts[pts.length-1].x},${PT+ch} L${pts[0].x},${PT+ch} Z`;
+
+  // Y axis labels (3 ticks)
+  const yticks = [lo, (lo+hi)/2, hi].map(v => ({ v: v.toFixed(1), y: yScale(v) }));
+
+  // X axis labels (first, middle, last)
+  const xLabels = [0, Math.floor((growthLogs.length-1)/2), growthLogs.length-1].filter((v,i,a)=>a.indexOf(v)===i).map(i => ({
+    i, x: xScale(i), label: (() => { const d = new Date(growthLogs[i].ts); return `${d.getMonth()+1}/${d.getDate()}`; })()
+  }));
+
+  const colors = { weight: '#FF8C61', height: '#4285F4', head: '#9B59B6' };
+  const color = colors[growthMetric] || '#FF8C61';
+  const units = { weight: 'kg', height: 'cm', head: 'cm' };
+
+  // Latest value highlight
+  const latest = vals[vals.length - 1];
+  const latestDate = new Date(growthLogs[growthLogs.length-1].ts);
+
+  wrap.innerHTML = `
+    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">
+      <span style="font-size:24px;font-weight:800;color:${color}">${latest}${units[growthMetric]}</span>
+      <span style="font-size:12px;color:var(--text-soft)">${latestDate.getMonth()+1}/${latestDate.getDate()} 最新記錄</span>
+      ${growthLogs.length >= 2 ? `<span style="font-size:12px;color:${vals[vals.length-1]>=vals[0]?'var(--green)':'#E53E3E'}">${vals[vals.length-1]>=vals[0]?'↑':'↓'}${Math.abs(vals[vals.length-1]-vals[0]).toFixed(2)}${units[growthMetric]}</span>` : ''}
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Grid lines -->
+      ${yticks.map(t => `<line x1="${PL}" y1="${t.y}" x2="${W-PR}" y2="${t.y}" stroke="#f0e8e0" stroke-width="1"/>`).join('')}
+      <!-- Area fill -->
+      <path d="${areaPath}" fill="${color}" fill-opacity="0.1"/>
+      <!-- Line -->
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Dots -->
+      ${pts.map((p, i) => `<circle cx="${p.x}" cy="${p.y}" r="${i===pts.length-1?5:3}" fill="${color}" stroke="white" stroke-width="2"/>`).join('')}
+      <!-- Y labels -->
+      ${yticks.map(t => `<text x="${PL-4}" y="${t.y+4}" text-anchor="end" font-size="9" fill="#A0705A" font-family="sans-serif">${t.v}</text>`).join('')}
+      <!-- X labels -->
+      ${xLabels.map(x => `<text x="${x.x}" y="${H-4}" text-anchor="middle" font-size="9" fill="#A0705A" font-family="sans-serif">${x.label}</text>`).join('')}
+    </svg>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-soft)">
+      <span>共 ${growthLogs.length} 筆記錄</span>
+      <span>最小 ${Math.min(...vals)}${units[growthMetric]} · 最大 ${Math.max(...vals)}${units[growthMetric]}</span>
+    </div>`;
+}
+
+// ═══════════════════════════════════════
+// BABY PICKER
+// ═══════════════════════════════════════
+function openBabyPicker(){
+  document.getElementById('babyList').innerHTML=S.babies.map(b=>`<div class="baby-row" onclick="selBaby('${b.id}')"><div class="b-av">${b.gender==='boy'?'👦':'👧'}</div><div class="b-info"><div class="b-name">${b.name}</div><div class="b-sub">${b.birth?'生日：'+b.birth:'尚未設定生日'}</div></div>${b.id===S.currentId?'<div class="b-check">✓</div>':''}</div>`).join('')+`<div class="add-baby-row" onclick="openAddBaby()"><div class="ab-icon">+</div><div style="font-size:16px;font-weight:700">新增寶寶</div></div>`;
+  document.getElementById('babyOv').classList.add('open');
+}
+function selBaby(id){S.currentId=id;save();updateHeader();renderLogs();updateSummary();renderCharts();closeOv('babyOv');toast('已切換到 '+curBaby().name);}
+let selGender='girl';
+function openAddBaby(){closeOv('babyOv');document.getElementById('newName').value='';document.getElementById('newBirth').value='';selGender='girl';document.querySelectorAll('#addBabyOv .gc').forEach(c=>c.classList.toggle('on',c.dataset.v==='girl'));document.getElementById('addBabyOv').classList.add('open');}
+function pickG(el){selGender=el.dataset.v;document.querySelectorAll('#addBabyOv .gc').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function saveNewBaby(){const name=document.getElementById('newName').value.trim()||'小寶貝';const birth=document.getElementById('newBirth').value;const b={id:uid(),name,gender:selGender,birth};S.babies.push(b);S.currentId=b.id;save();updateHeader();renderLogs();updateSummary();closeOv('addBabyOv');toast('✨ 已新增：'+name);}
+function renderBabySet(){document.getElementById('babySetList').innerHTML=S.babies.map(b=>`<div class="set-item"><div class="sii">${b.gender==='boy'?'👦':'👧'}</div><div class="sib"><div class="sin">${b.name}</div><div class="sis">${b.birth?'生日：'+b.birth:'尚未設定生日'}${b.id===S.currentId?' · 使用中':''}</div></div></div>`).join('')+`<div class="set-item" onclick="openAddBaby()"><div class="sii">➕</div><div class="sib"><div class="sin">新增寶寶</div></div><div class="sia">›</div></div>`;}
+
+// ═══════════════════════════════════════
+// GOOGLE DRIVE AUTH
+// ═══════════════════════════════════════
+function tryAutoLogin(){
+  if(!GD.clientId||!window.google||!window.google.accounts)return;
+  const client=google.accounts.oauth2.initTokenClient({
+    client_id:GD.clientId,
+    scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets',
+    callback:(resp)=>{if(resp.access_token){GD.token=resp.access_token;GD.connected=true;updateSyncUI();addSyncLog('✅ 自動重新登入成功');setTimeout(fullSync,500);}}
+  });
+  client.requestAccessToken({prompt:''});// no prompt = silent re-auth
+}
+
+function openGdriveSetup(){
+  const body=document.getElementById('gdriveBody');
+  if(GD.connected){
+    body.innerHTML=`<div style="text-align:center;padding:16px 0 20px"><div style="font-size:48px;margin-bottom:12px">✅</div><div style="font-size:18px;font-weight:800;color:var(--green)">已連結成功！</div><div style="font-size:13px;color:var(--text-soft);margin-top:8px;line-height:1.6">每次記錄後自動同步到 Google Drive<br>老婆用同一 Google 帳號登入即可共享</div></div>
+    <div class="divider"></div>
+    <div style="background:var(--cream);border-radius:var(--r-sm);padding:16px;font-size:13px;line-height:2">
+      📁 我的雲端硬碟<br>&nbsp;&nbsp;└── 📁 寶寶記錄<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── 📄 records.json<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── 📊 寶寶記錄總表
+    </div>
+    <div class="sactions"><button class="btn-save" style="flex:1" onclick="manualSync();closeOv('gdriveOv')">🔄 立即同步</button></div>`;
+  } else {
+    body.innerHTML=`<p style="font-size:14px;color:var(--text-soft);line-height:1.7;margin-bottom:20px">設定完成後，每次記錄都會自動同步到 Google Drive，您和老婆共用同一帳號即可即時共享。</p>
+    <div class="step"><div class="step-n">1</div><div class="step-b"><div class="step-t">開啟 Google Cloud Console</div><div class="step-d">用電腦前往 <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a></div></div></div>
+    <div class="step"><div class="step-n">2</div><div class="step-b"><div class="step-t">建立專案 → 啟用 API</div><div class="step-d">「新增專案」→「API 和服務」→「啟用 API」<br>搜尋並分別啟用：<b>Google Drive API</b> 和 <b>Google Sheets API</b></div></div></div>
+    <div class="step"><div class="step-n">3</div><div class="step-b"><div class="step-t">建立 OAuth 憑證</div><div class="step-d">「憑證」→「建立憑證」→「OAuth 用戶端 ID」<br>類型選「<b>網頁應用程式</b>」<br>「授權的 JavaScript 來源」填入本 App 的網址</div></div></div>
+    <div class="step"><div class="step-n">4</div><div class="step-b"><div class="step-t">貼入 Client ID</div><div class="step-d">複製建立好的「用戶端 ID」貼入下方</div></div></div>
+    <div class="field"><label class="fl">Google OAuth Client ID</label><input class="input" id="cidInput" placeholder="xxxxx.apps.googleusercontent.com" value="${GD.clientId}"/></div>
+    <div class="sactions"><button class="btn-cancel" onclick="closeOv('gdriveOv')">稍後</button><button class="btn-save" onclick="startGoogleLogin()">🔗 登入 Google</button></div>`;
+  }
+  document.getElementById('gdriveOv').classList.add('open');
+}
+
+function startGoogleLogin(){
+  const cid=(document.getElementById('cidInput')||{}).value;
+  if(!cid||!cid.includes('apps.googleusercontent.com')){toast('⚠️ 請輸入正確的 Client ID');return;}
+  GD.clientId=cid;saveGD();
+  if(!window.google||!window.google.accounts){toast('⚠️ GIS 尚未載入，請稍候再試');return;}
+  google.accounts.oauth2.initTokenClient({
+    client_id:GD.clientId,
+    scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets',
+    callback:(resp)=>{
+      if(resp.access_token){GD.token=resp.access_token;GD.connected=true;updateSyncUI();toast('✅ 連結成功！');closeOv('gdriveOv');setTimeout(fullSync,500);}
+      else toast('⚠️ 登入失敗');
+    },
+    error_callback:(e)=>toast('⚠️ 登入失敗：'+e.type)
+  }).requestAccessToken();
+}
+
+function updateSyncUI(){
+  const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLbl');
+  if(GD.connected){dot.className='sync-dot ok';lbl.textContent='已同步';}
+  else{dot.className='sync-dot';lbl.textContent='未連結';}
+}
+function setSyncing(v){const dot=document.getElementById('syncDot'),lbl=document.getElementById('syncLbl');if(v){dot.className='sync-dot busy';lbl.textContent='同步中';}else{dot.className=GD.connected?'sync-dot ok':'sync-dot';lbl.textContent=GD.connected?'已同步':'未連結';}}
+
+function updateSettingsUI(){
+  const banner=document.getElementById('gdriveBanner');
+  if(GD.connected){banner.classList.add('ok');document.getElementById('gdTitle').textContent='Google Drive 已連結 ✅';document.getElementById('gdSub').textContent=GD.lastSync?'上次同步：'+GD.lastSync:'點此查看詳情';document.getElementById('disconnectRow').style.display='flex';}
+  else{banner.classList.remove('ok');document.getElementById('gdTitle').textContent='連結 Google Drive';document.getElementById('gdSub').textContent='點此設定，讓兩支手機即時同步';document.getElementById('disconnectRow').style.display='none';}
+  if(GD.lastSync)document.getElementById('lastSyncLbl').textContent='上次同步：'+GD.lastSync;
+}
+
+function onSyncBtn(){if(!GD.connected){switchPage('settings');}else manualSync();}
+
+function disconnectGoogle(){if(!confirm('確定中斷連結？'))return;GD.token=null;GD.connected=false;GD.folderId='';GD.jsonFileId='';GD.sheetId='';saveGD();updateSyncUI();toast('🔌 已中斷連結');}
+
+function openSyncLog(){document.getElementById('syncLogBox').textContent=GD.syncLog.length?GD.syncLog.slice(-30).reverse().join('\n'):'（尚無記錄）';document.getElementById('syncLogOv').classList.add('open');}
+function addSyncLog(msg){const t=new Date().toLocaleTimeString('zh-TW');GD.syncLog.push(`[${t}] ${msg}`);if(GD.syncLog.length>60)GD.syncLog=GD.syncLog.slice(-60);saveGD();}
+
+// ═══════════════════════════════════════
+// GOOGLE DRIVE API
+// ═══════════════════════════════════════
+async function gFetch(url,method,bodyObj,extraHeaders){
+  const resp=await fetch(url,{method:method||'GET',headers:{'Authorization':'Bearer '+GD.token,'Content-Type':'application/json',...(extraHeaders||{})},body:bodyObj?JSON.stringify(bodyObj):undefined});
+  if(resp.status===401){GD.token=null;GD.connected=false;saveGD();updateSyncUI();throw new Error('TOKEN_EXPIRED');}
+  return resp;
+}
+
+async function ensureFolder(){
+  if(GD.folderId)return GD.folderId;
+  const q=encodeURIComponent("name='寶寶記錄' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+  const r=await gFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+  const d=await r.json();
+  if(d.files&&d.files.length){GD.folderId=d.files[0].id;saveGD();return GD.folderId;}
+  const cr=await gFetch('https://www.googleapis.com/drive/v3/files','POST',{name:'寶寶記錄',mimeType:'application/vnd.google-apps.folder'});
+  const cd=await cr.json();GD.folderId=cd.id;saveGD();addSyncLog('📁 已建立「寶寶記錄」資料夾');return GD.folderId;
+}
+
+async function pushJson(){
+  const fid=await ensureFolder();
+  const payload=JSON.stringify({babies:S.babies,logs:S.logs,updatedAt:new Date().toISOString()},null,2);
+  const bnd='btbnd';
+  const mp=`--${bnd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({name:'records.json',mimeType:'application/json',...(!GD.jsonFileId?{parents:[fid]}:{})})}\r\n--${bnd}\r\nContent-Type: application/json\r\n\r\n${payload}\r\n--${bnd}--`;
+  const method=GD.jsonFileId?'PATCH':'POST';
+  const url=GD.jsonFileId?`https://www.googleapis.com/upload/drive/v3/files/${GD.jsonFileId}?uploadType=multipart`:`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+  const resp=await fetch(url,{method,headers:{'Authorization':'Bearer '+GD.token,'Content-Type':`multipart/related; boundary=${bnd}`},body:mp});
+  if(!resp.ok)throw new Error('pushJson failed: '+resp.status);
+  const data=await resp.json();if(!GD.jsonFileId){GD.jsonFileId=data.id;saveGD();}
+}
+
+async function pullJson(){
+  if(!GD.jsonFileId){
+    const fid=await ensureFolder();
+    const q=encodeURIComponent(`name='records.json' and '${fid}' in parents and trashed=false`);
+    const r=await gFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+    const d=await r.json();if(!d.files||!d.files.length)return;
+    GD.jsonFileId=d.files[0].id;saveGD();
+  }
+  const r=await gFetch(`https://www.googleapis.com/drive/v3/files/${GD.jsonFileId}?alt=media`);
+  if(!r.ok)return;
+  const remote=await r.json();
+  const all=[...S.logs,...(remote.logs||[])];const seen=new Set();S.logs=all.filter(l=>{if(seen.has(l.id))return false;seen.add(l.id);return true;});S.logs.sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const allB=[...S.babies,...(remote.babies||[])];const seenB=new Set();S.babies=allB.filter(b=>{if(seenB.has(b.id))return false;seenB.add(b.id);return true;});
+  save();addSyncLog('⬇️ 從雲端拉取並合併資料');
+}
+
+// ═══════════════════════════════════════
+// GOOGLE SHEETS
+// ═══════════════════════════════════════
+const TABS={
+  feed:{n:'哺乳',h:['時間','寶寶','方式','時長(分)','奶量(ml)','備註']},
+  sleep:{n:'睡眠',h:['開始時間','結束時間','時長(分)','寶寶','地點','備註']},
+  diaper:{n:'換尿布',h:['時間','寶寶','類型','顏色','備註']},
+  pump:{n:'擠奶',h:['時間','側別','時長(分)','奶量(ml)','備註']},
+  gauze:{n:'換紗布',h:['時間','寶寶','傷口狀況','備註']},
+  medicine:{n:'用藥',h:['時間','寶寶','藥名','劑量','方式','備註']},
+  growth:{n:'體重身高',h:['時間','寶寶','體重(kg)','身高(cm)','頭圍(cm)','備註']},
+};
+
+function toRow(e){
+  const d=e.detail||{},t=new Date(e.ts).toLocaleString('zh-TW'),bn=e.babyName||'';
+  if(e.type==='feed')return[t,bn,d.type||'',d.dur||'',d.amt||'',d.note||''];
+  if(e.type==='sleep'){const et=d.endTs?new Date(d.endTs).toLocaleString('zh-TW'):'';const m=d.endTs?Math.round((new Date(d.endTs)-new Date(e.ts))/60000):'';return[t,et,m,bn,d.loc||'',d.note||''];}
+  if(e.type==='diaper')return[t,bn,d.type||'',d.color||'',d.note||''];
+  if(e.type==='pump')return[t,d.side||'',d.dur||'',d.amt||'',d.note||''];
+  if(e.type==='gauze')return[t,bn,d.status||'',d.note||''];
+  if(e.type==='medicine')return[t,bn,d.name||'',d.dose||'',d.method||'',d.note||''];
+  if(e.type==='growth')return[t,bn,d.weight||'',d.height||'',d.head||'',d.note||''];
+  return[t,bn,e.display||'','','',''];
+}
+
+async function ensureSheet(){
+  if(GD.sheetId)return GD.sheetId;
+  const fid=await ensureFolder();
+  const q=encodeURIComponent(`name='寶寶記錄總表' and '${fid}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`);
+  const r=await gFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+  const d=await r.json();if(d.files&&d.files.length){GD.sheetId=d.files[0].id;saveGD();return GD.sheetId;}
+  // Create spreadsheet with all tabs + headers
+  const tabs=Object.values(TABS);
+  const cr=await gFetch('https://sheets.googleapis.com/v4/spreadsheets','POST',{
+    properties:{title:'寶寶記錄總表'},
+    sheets:tabs.map((tab,i)=>({properties:{sheetId:i,title:tab.n},data:[{rowData:[{values:tab.h.map(h=>({userEnteredValue:{stringValue:h},userEnteredFormat:{textFormat:{bold:true},backgroundColor:{red:1,green:0.95,blue:0.88}}}))}]}]}))
+  });
+  const cd=await cr.json();GD.sheetId=cd.spreadsheetId;saveGD();
+  // Move to folder
+  await fetch(`https://www.googleapis.com/drive/v3/files/${GD.sheetId}?addParents=${fid}&fields=id`,{method:'PATCH',headers:{'Authorization':'Bearer '+GD.token}});
+  addSyncLog('📊 已建立「寶寶記錄總表」Google Sheet');return GD.sheetId;
+}
+
+async function appendRow(entry){
+  if(!TABS[entry.type])return;
+  const sid=await ensureSheet();
+  const tabName=TABS[entry.type].n;
+  const row=toRow(entry);
+  await gFetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tabName)}!A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,'POST',{values:[row]});
+}
+
+// ═══════════════════════════════════════
+// SYNC ORCHESTRATION
+// ═══════════════════════════════════════
+let syncLock=false;
+
+async function syncEntry(entry){
+  if(!GD.connected||!GD.token||syncLock)return;
+  syncLock=true;setSyncing(true);
+  try{
+    await pushJson();await appendRow(entry);
+    GD.lastSync=new Date().toLocaleString('zh-TW');saveGD();setSyncing(false);updateSettingsUI();addSyncLog('✅ 已同步：'+TN[entry.type]);
+  }catch(e){
+    setSyncing(false);document.getElementById('syncDot').className='sync-dot err';
+    if(e.message==='TOKEN_EXPIRED'){toast('🔑 登入已過期，請重新連結');GD.connected=false;updateSyncUI();}
+    else{toast('⚠️ 同步失敗');addSyncLog('❌ '+e.message);}
+  }finally{syncLock=false;}
+}
+
+async function fullSync(){
+  if(!GD.connected||!GD.token||syncLock)return;
+  syncLock=true;setSyncing(true);
+  try{
+    await pullJson();await pushJson();await ensureSheet();
+    GD.lastSync=new Date().toLocaleString('zh-TW');saveGD();
+    renderLogs();updateSummary();renderCharts();updateHeader();
+    setSyncing(false);toast('☁️ 同步完成！');addSyncLog('✅ 完整同步完成');updateSettingsUI();
+  }catch(e){
+    setSyncing(false);document.getElementById('syncDot').className='sync-dot err';
+    if(e.message==='TOKEN_EXPIRED'){toast('🔑 登入已過期，請重新連結');GD.connected=false;updateSyncUI();}
+    else{toast('⚠️ 同步失敗，請稍後再試');addSyncLog('❌ 同步失敗：'+e.message);}
+  }finally{syncLock=false;}
+}
+
+async function manualSync(){
+  if(!GD.connected||!GD.token){
+    if(GD.clientId)tryAutoLogin();else openGdriveSetup();return;
+  }
+  toast('🔄 同步中...');await fullSync();
+}
+
+// ═══════════════════════════════════════
+// REMINDERS
+// ═══════════════════════════════════════
+const REMS=[{key:'feed',icon:'🍼',name:'哺乳提醒'},{key:'sleep',icon:'😴',name:'睡眠提醒'},{key:'diaper',icon:'🩲',name:'換尿布提醒'},{key:'pump',icon:'🥛',name:'擠奶提醒'},{key:'gauze',icon:'🩹',name:'換紗布提醒'},{key:'medicine',icon:'💊',name:'用藥提醒'}];
+let editRKey='';
+
+function renderRems(){
+  document.getElementById('remList').innerHTML=REMS.map((r,i)=>{
+    const rem=S.reminders[r.key]||{on:false};
+    const detail=rem.on?(rem.mode==='interval'?`每隔 ${rem.interval} 分鐘`:`固定時間點`):'點此設定';
+    return `<div class="rem-item" style="${i<REMS.length-1?'border-bottom:1px solid var(--border)':''}"><div class="ri">${r.icon}</div><div class="rb" onclick="openRemDetail('${r.key}')"><div class="rn">${r.name}</div><div class="rd">${detail}</div></div><button class="toggle ${rem.on?'on':''}" onclick="togRem('${r.key}',this)"></button></div>`;
+  }).join('');
+}
+
+function togRem(key,btn){S.reminders[key].on=!S.reminders[key].on;btn.classList.toggle('on',S.reminders[key].on);btn.previousElementSibling.querySelector('.rd').textContent=S.reminders[key].on?(S.reminders[key].mode==='interval'?`每隔 ${S.reminders[key].interval} 分鐘`:`固定時間點`):'點此設定';save();if(S.reminders[key].on)reqNotif();scheduleRems();toast(S.reminders[key].on?'🔔 已開啟提醒':'🔕 已關閉提醒');}
+
+function openRemDetail(key){editRKey=key;_tTimes=[...(S.reminders[key].times||[])];const r=REMS.find(x=>x.key===key);const rem=S.reminders[key]||{mode:'interval',interval:120,times:[]};document.getElementById('remDetailTitle').textContent=r.icon+' '+r.name;document.getElementById('remDetailBody').innerHTML=`<div class="field"><label class="fl">提醒模式</label><div class="chips" id="rdm"><div class="chip ${rem.mode==='interval'?'on':''}" data-v="interval" onclick="pc(this,'rdm');rdMC()">距上次記錄後</div><div class="chip ${rem.mode==='fixed'?'on':''}" data-v="fixed" onclick="pc(this,'rdm');rdMC()">固定時間點</div></div></div><div id="rdis" style="display:${rem.mode==='interval'?'block':'none'}"><div class="field"><label class="fl">幾分鐘後提醒</label><input class="input" id="rdiv" type="number" inputmode="numeric" value="${rem.interval||120}"/><div style="font-size:12px;color:var(--text-soft);margin-top:6px">哺乳 120分 · 換尿布 180分 · 擠奶 240分</div></div></div><div id="rdfs" style="display:${rem.mode==='fixed'?'block':'none'}"><div class="field"><label class="fl">新增提醒時間</label><div style="display:flex;gap:8px"><input class="input" id="rdnt" type="time" style="flex:1"/><button onclick="addFT()" style="padding:0 16px;background:var(--coral);color:white;border:none;border-radius:var(--r-sm);font-size:20px;cursor:pointer">+</button></div></div><div id="rdtl">${renderFTs(_tTimes)}</div></div>`;document.getElementById('remDetailOv').classList.add('open');}
+
+function rdMC(){const m=gc('rdm');document.getElementById('rdis').style.display=m==='interval'?'block':'none';document.getElementById('rdfs').style.display=m==='fixed'?'block':'none';}
+function renderFTs(times){if(!times.length)return '<div style="color:var(--text-soft);font-size:13px;padding:4px 0">尚未設定時間點</div>';return times.map((t,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:16px;font-weight:700">${t}</span><button onclick="remFT(${i})" style="background:none;border:none;font-size:18px;color:var(--text-soft);cursor:pointer">✕</button></div>`).join('');}
+let _tTimes=[];
+function addFT(){const t=(document.getElementById('rdnt')||{}).value;if(!t)return;if(!_tTimes.includes(t)){_tTimes.push(t);_tTimes.sort();}document.getElementById('rdtl').innerHTML=renderFTs(_tTimes);}
+function remFT(i){_tTimes.splice(i,1);document.getElementById('rdtl').innerHTML=renderFTs(_tTimes);}
+function saveRemDetail(){const mode=gc('rdm');const rem=S.reminders[editRKey];rem.mode=mode;if(mode==='interval'){rem.interval=parseInt((document.getElementById('rdiv')||{}).value)||120;}else{rem.times=[..._tTimes];}save();scheduleRems();closeOv('remDetailOv');renderRems();toast('✅ 提醒已儲存');}
+
+function reqNotif(){if(!('Notification' in window)){toast('⚠️ 瀏覽器不支援通知');return;}if(Notification.permission==='granted')return;Notification.requestPermission().then(p=>{if(p==='granted')toast('🔔 通知已開啟！');else toast('⚠️ 請允許通知權限');});}
+function sendNotif(title,body){if(!('Notification' in window)||Notification.permission!=='granted')return;try{new Notification(title,{body});}catch(e){}}
+
+let _remTimers=[];
+function scheduleRems(){
+  _remTimers.forEach(t=>clearTimeout(t));_remTimers=[];
+  REMS.forEach(({key})=>{
+    const rem=S.reminders[key];if(!rem||!rem.on)return;
+    if(rem.mode==='interval'){
+      const last=S.logs.find(l=>l.babyId===S.currentId&&l.type===key);if(!last)return;
+      const wait=(rem.interval*60*1000)-(Date.now()-new Date(last.ts).getTime());
+      if(wait>0){const r=REMS.find(x=>x.key===key);_remTimers.push(setTimeout(()=>sendNotif(r.icon+' '+r.name,`距上次${r.name}已超過 ${rem.interval} 分鐘`),wait));}
+    }else{
+      (rem.times||[]).forEach(t=>{const now=new Date();const[h,m]=t.split(':').map(Number);const tgt=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);if(tgt<=now)tgt.setDate(tgt.getDate()+1);const r=REMS.find(x=>x.key===key);_remTimers.push(setTimeout(()=>sendNotif(r.icon+' '+r.name,`提醒時間到了（${t}）`),tgt-now));});
+    }
+  });
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function ovClick(e,id){if(e.target===document.getElementById(id))closeOv(id);}
+function closeOv(id){document.getElementById(id).classList.remove('open');}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400);}
+
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+init();
+</script>
+</body>
+</html>
